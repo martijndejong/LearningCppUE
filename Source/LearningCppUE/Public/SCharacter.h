@@ -31,6 +31,7 @@ protected:
 
 	// MDJ: Must declare void MoveForward function in .h before can be created in .cpp
 	void MoveForward(float Value);
+	void MoveRight(float Value);
 
 public:	
 	// Called every frame
