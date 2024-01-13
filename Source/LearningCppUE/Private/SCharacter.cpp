@@ -53,8 +53,8 @@ void ASCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	// ==================== DEBUG ARROWS =======================
-// This is entirely optional, it draws two arrows to visualize rotations of the player
-// -- Rotation Visualization -- //
+	// This is entirely optional, it draws two arrows to visualize rotations of the player
+	// -- Rotation Visualization -- //
 	const float DrawScale = 100.0f;
 	const float Thickness = 5.0f;
 
@@ -86,6 +86,10 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
 	// MDJ: same same but for pitch
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
+
+
+	// MDJ: Bind action for spawning MagicProjectile
+	PlayerInputComponent->BindAction("PrimaryAttack", IE_Pressed, this, &ASCharacter::PrimaryAttack);
 }
 
 
@@ -125,5 +129,27 @@ void ASCharacter::MoveRight(float Value)
 
 	// MDJ: this was the initial simple move right:
 	// AddMovementInput(GetActorRightVector(), Value);
+}
+
+// MDJ: This is the function that will be executed by BindAction that is referencing this function
+void ASCharacter::PrimaryAttack()
+{
+	// MDJ: FIRST INPUT 
+	// For the first input of SpawnActor we need to pass a class, to do this we need to add new UPROPERTY 'ProjectileClass' to SCharacter.h
+	
+	// MDJ: SECOND INPUT 
+	// Set up Transformation Matrix to use for spawning actor -- first pass rotator (GetControlRotation) then vector (GetActorLocation -- or socket location)
+	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
+	FTransform SpawnTM = FTransform(GetControlRotation(), HandLocation);
+
+	// MDJ: THIRD INPUT
+	// Set up spawn parameters to use for spawning (many options to change, but we only interested in SpawnCollisionHandlingOverride (set to always Spawn)
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+
+	// MDJ: We want to spawn the projectile actor. Spawning is always done through the world, so starts with GetWorld()
+	// MDJ: SpawnActor first expects <type> , so <AActor>, and then (class, transform, parameters)
+	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
 }
 
