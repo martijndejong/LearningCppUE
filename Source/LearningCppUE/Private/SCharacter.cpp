@@ -2,12 +2,15 @@
 
 
 #include "SCharacter.h"
-// include SpringArmComponent and CameraComponent, find location by CTRL+click the <U...Component> after "CreateDefaultSubobject"
+// MDJ: include SpringArmComponent and CameraComponent, find location by CTRL+click the <U...Component> after "CreateDefaultSubobject"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 
+// MDJ: Include this to enable 'GetCharacterMovement' 
+# include "GameFramework/CharacterMovementComponent.h"
 
-// This include is added for DEBUG ARROWS
+
+// MDJ: This include is added for DEBUG ARROWS
 #include "DrawDebugHelpers.h"
 
 
@@ -28,6 +31,12 @@ ASCharacter::ASCharacter()
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>("CameraComp");
 	CameraComp->SetupAttachment(SpringArmComp);
+
+	// MDJ: below set direct property of ASCharacter (inherited from Actor parent class) to enable looking around without yawing character
+	bUseControllerRotationYaw = false;
+
+	// needed import -> I ctrl+clicked on the fuction to find cpp file, then went to top to find corresponding header file
+	GetCharacterMovement()->bOrientRotationToMovement = true;
 }
 
 // Called when the game starts or when spawned
@@ -83,12 +92,38 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 // MDJ: Create MoveForward function to be passed to BindAxis
 void ASCharacter::MoveForward(float Value)
 {
-	AddMovementInput(GetActorForwardVector(), Value);
+	// MDJ: The below code makes it so that the character moves in the direction that the camera is facing (control rotation ipv character rotation)
+	// MDJ: First make new FRotator named ControlRot and give it the output of GetControlRotation, 
+	// then force pitch & roll =0, then take vector value and pass to AddMovementInput
+	FRotator ControlRot = GetControlRotation();
+	ControlRot.Pitch = 0.0f;
+	ControlRot.Roll = 0.0f;
+
+	AddMovementInput(ControlRot.Vector(), Value);
+
+	// MDJ: this was the initial simple move forward:
+	// AddMovementInput(GetActorForwardVector(), Value);
 }
 
 // MDJ: Create MoveRight function to be passed to BindAxis
 void ASCharacter::MoveRight(float Value)
 {
-	AddMovementInput(GetActorRightVector(), Value);
+	// MDJ: The below code makes it so that the character moves right and left compared to where camera is facing (control rotation ipv character rotation)
+	// MDJ: First make new FRotator named ControlRot and give it the output of GetControlRotation, 
+	// then force pitch & roll =0, then take vector value and pass to AddMovementInput
+	// then take the orthogonal direction:: two options: 
+	//	Vector().RotateAngleAxis(90, {0, 0, 1}) 
+	//	or look up source code for GetRightVector (KismetLibrary) and use their function (FRotationMatrix)
+	// MDJ: PRO TIP: to find the GetRightVector and usage -- you can use BluePrint to search it 
+	FRotator ControlRot = GetControlRotation();
+	ControlRot.Pitch = 0.0f;
+	ControlRot.Roll = 0.0f;
+
+	FVector RightVector = FRotationMatrix(ControlRot).GetScaledAxis(EAxis::Y);
+
+	AddMovementInput(RightVector, Value);
+
+	// MDJ: this was the initial simple move right:
+	// AddMovementInput(GetActorRightVector(), Value);
 }
 
