@@ -6,6 +6,9 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 
+// MDJ: include our own interaction component class
+#include "SInteractionComponent.h"
+
 // MDJ: Include this to enable 'GetCharacterMovement' 
 # include "GameFramework/CharacterMovementComponent.h"
 
@@ -31,6 +34,9 @@ ASCharacter::ASCharacter()
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>("CameraComp");
 	CameraComp->SetupAttachment(SpringArmComp);
+
+	// MDJ: Adding the selfmade interaction component
+	InteractionComp = CreateDefaultSubobject<USInteractionComponent>("InteractionComp");
 
 	// MDJ: below set direct property of ASCharacter (inherited from Actor parent class) to enable looking around without yawing character
 	bUseControllerRotationYaw = false;
@@ -93,6 +99,9 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	// MDJ: Assignment 1: add character jump
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+
+	//MDJ: Bind action for interaction component
+	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this, &ASCharacter::PrimaryInteract);
 }
 
 
@@ -154,5 +163,12 @@ void ASCharacter::PrimaryAttack()
 	// MDJ: We want to spawn the projectile actor. Spawning is always done through the world, so starts with GetWorld()
 	// MDJ: SpawnActor first expects <type> , so <AActor>, and then (class, transform, parameters)
 	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+}
+
+// MDJ: Note: we create a new function PrimaryInteract here for character class that is bound to action
+//		this is a completely separate function from the InteractionComponent 'PrimaryInteract', they just have the same name 
+void ASCharacter::PrimaryInteract()
+{
+	InteractionComp->PrimaryInteract();
 }
 
