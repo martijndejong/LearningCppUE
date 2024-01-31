@@ -146,9 +146,24 @@ void ASCharacter::MoveRight(float Value)
 // MDJ: This is the function that will be executed by BindAction that is referencing this function
 void ASCharacter::PrimaryAttack()
 {
+	// MDJ: Add animation to PrimaryAttack
+	PlayAnimMontage(AttackAnim);
+
+	// MDJ: Delay the animation -- should be done using Animation Notifies, but for illustrative purposes a Timer is explained and used here
+	float AnimationDelay = 0.2f;
+	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::PrimaryAttack_TimeElapsed, AnimationDelay);
+	// GetWorldTimerManager().ClearTimer(TimerHandle_PrimaryAttack); <--- this would clear the timer, could be used e.g. when character dies so that it does not fire after death
+
+	// MDJ: Previously the code of PrimaryAttack_TimeElapsed was here, but it has been moved into that function so that it can executed by the timer
+
+}
+
+void ASCharacter::PrimaryAttack_TimeElapsed()
+{
+	// MDJ: Inputs for SpawnActor explained:
 	// MDJ: FIRST INPUT 
 	// For the first input of SpawnActor we need to pass a class, to do this we need to add new UPROPERTY 'ProjectileClass' to SCharacter.h
-	
+
 	// MDJ: SECOND INPUT 
 	// Set up Transformation Matrix to use for spawning actor -- first pass rotator (GetControlRotation) then vector (GetActorLocation -- or socket location)
 	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");

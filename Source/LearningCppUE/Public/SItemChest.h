@@ -20,7 +20,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	float TargetPitch;
 	
-	// MDJ: because we chose 'BlueprintNativeEvent', the boilerplate of UE expect <func_name>_Implementation (otherwise would've just been <func_name>
+	// MDJ: because we chose 'BlueprintNativeEvent', the boilerplate of UE expect <func_name>_Implementation (otherwise would've just been <func_name>)
 	void Interact_Implementation(APawn* InstigatorPawn);
 
 public:	

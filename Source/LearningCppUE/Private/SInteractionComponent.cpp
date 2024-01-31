@@ -97,7 +97,7 @@ void USInteractionComponent::PrimaryInteract()
 	FColor LineColor = bBlockingHit ? FColor::Green : FColor::Red; // This is an inline if else statement
 
 	// MDJ: Loop over the hit results and for each hit do the interaction (I made function InteractWithActor instead of having all the logic in the for loop itself)
-	for (const FHitResult Hit : Hits)
+	for (FHitResult Hit : Hits)
 	{
 		InteractWithActor(Hit, MyOwner);
 

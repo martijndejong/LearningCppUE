@@ -9,6 +9,7 @@
 class UCameraComponent;
 class USpringArmComponent;
 class USInteractionComponent;
+class UAnimMontage;
 
 UCLASS()
 class LEARNINGCPPUE_API ASCharacter : public ACharacter
@@ -28,7 +29,7 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	UCameraComponent* CameraComp;
 
-	// MDJ: this is for adding the selfcreated interaction component to the character
+	// MDJ: this is for adding the interaction component to the character
 	UPROPERTY(VisibleAnywhere)
 	USInteractionComponent* InteractionComp;
 
@@ -46,9 +47,19 @@ protected:
 	void PrimaryInteract();
 
 protected:
+	// MDJ: Setting a category is good practice to categorize in the editor (does not affect any way the code runs, solely for how it's shown in the editor)
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	UAnimMontage* AttackAnim;
+
 	// MDJ: This makes it so that from the BP you can set a 'ProjectileClass' (of type <AActor>) which will be used by SpawnActor in ASCharacter::PrimaryAttack()
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Attack")
 	TSubclassOf<AActor> ProjectileClass;
+
+
+	// MDJ: Adding timer to time to animation with attack
+	FTimerHandle TimerHandle_PrimaryAttack;
+
+	void PrimaryAttack_TimeElapsed();
 
 public:	
 	// Called every frame

@@ -25,5 +25,5 @@ public:
 	// MDJ: BlueprintNativeEvent: native here is C++, this is both for C++ and BP -> when added to C++ class, code expects implementation but can still be added to BP
 	// MDJ: BlueprintImplementableEvent: is really used if intent to only have implementation in BP,  not in C++
 	UFUNCTION(BlueprintNativeEvent)
-	void Interact(APawn* IstigatorPawn);
+	void Interact(APawn* InstigatorPawn);
 };
