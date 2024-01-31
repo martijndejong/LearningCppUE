@@ -24,6 +24,8 @@ class LEARNINGCPPUE_API ISGameplayInterface
 public:
 	// MDJ: BlueprintNativeEvent: native here is C++, this is both for C++ and BP -> when added to C++ class, code expects implementation but can still be added to BP
 	// MDJ: BlueprintImplementableEvent: is really used if intent to only have implementation in BP,  not in C++
-	UFUNCTION(BlueprintNativeEvent)
+	// MDJ: the above made it so that we could add the interface to the Lever and implement an event for the interface in the Event Graph
+	// MDJ: by also adding 'BlueprintCallable', we make it so that we can call the Interact interface function from a BP
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void Interact(APawn* InstigatorPawn);
 };
