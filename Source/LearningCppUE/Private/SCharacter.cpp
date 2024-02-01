@@ -173,7 +173,8 @@ void ASCharacter::PrimaryAttack_TimeElapsed()
 	// Set up spawn parameters to use for spawning (many options to change, but we only interested in SpawnCollisionHandlingOverride (set to always Spawn)
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
+	// MDJ: THIS IS IMPORTANT TO AVOID SELF COLLISION! Pass self as 'instigator' to SpawnActor
+	SpawnParams.Instigator = this;
 
 	// MDJ: We want to spawn the projectile actor. Spawning is always done through the world, so starts with GetWorld()
 	// MDJ: SpawnActor first expects <type> , so <AActor>, and then (class, transform, parameters)

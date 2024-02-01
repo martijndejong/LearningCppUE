@@ -21,13 +21,14 @@ public:
 
 protected:
 	// MDJ: 'UPROPERTY(VisibleAnywhere)' makes it visible and assignable from the editor
-	UPROPERTY(VisibleAnywhere)
+	// MDJ: had to add BlueprintReadOnly to also be able to use it in the BP event graph
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	USphereComponent* SphereComp;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UProjectileMovementComponent* MovementComp;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UParticleSystemComponent* EffectComp;
 
 
