@@ -22,10 +22,10 @@ public:
 	// This protected section added entirely by MDJ
 protected:
 	UPROPERTY(VisibleAnywhere)
-	UStaticMeshComponent* StaticMesh;
+	UStaticMeshComponent* StaticMesh; // MDJ: Tom calls this MeshComp
 
 	UPROPERTY(VisibleAnywhere)
-	URadialForceComponent* RadialForce;
+	URadialForceComponent* RadialForce; // MDJ: Tom calls this ForceComp
 
 	// This must also be added to make PostInitializeComponents() work
 	virtual void PostInitializeComponents() override;
@@ -33,5 +33,5 @@ protected:
 	// Must be marked with ufunction in order to be able to 'bind' the event
 	UFUNCTION()
 	// Had to add this 'signature' to the function for it to work -- it is what OnComponentHit passes to the function on default
-	void ExplosionFunction(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	void ExplosionFunction(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit); // MDJ: Tom calls this OnActorHit
 };

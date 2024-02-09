@@ -167,7 +167,38 @@ void ASCharacter::PrimaryAttack_TimeElapsed()
 	// MDJ: SECOND INPUT 
 	// Set up Transformation Matrix to use for spawning actor -- first pass rotator (GetControlRotation) then vector (GetActorLocation -- or socket location)
 	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
-	FTransform SpawnTM = FTransform(GetControlRotation(), HandLocation);
+	// FTransform SpawnTM = FTransform(GetControlRotation(), HandLocation);
+	// =================== ASSIGNMENT 2.1 // =================== 
+	//				Fix Projectile Launch Direction
+	// line trace
+	FHitResult Hit;
+	FVector Start;
+	FVector End;
+	FCollisionObjectQueryParams ObjectQueryParams;
+	bool bBlockingHit;
+
+	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldStatic);
+	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+	ObjectQueryParams.AddObjectTypesToQuery(ECC_Pawn);
+	ObjectQueryParams.AddObjectTypesToQuery(ECC_PhysicsBody);
+	ObjectQueryParams.AddObjectTypesToQuery(ECC_Vehicle);
+	ObjectQueryParams.AddObjectTypesToQuery(ECC_Destructible);
+
+	FVector CameraLocation;
+	FRotator CameraRotation;
+	GetController()->GetPlayerViewPoint(CameraLocation, CameraRotation);
+
+	Start = CameraLocation;
+	End = Start + CameraRotation.Vector() * 99999;
+	bBlockingHit = GetWorld()->LineTraceSingleByObjectType(Hit, Start, End, ObjectQueryParams);
+
+	// Compute Spawn Transform
+	FRotator SpawnRotation = bBlockingHit ? (Hit.ImpactPoint - HandLocation).Rotation() : CameraRotation;
+	FTransform SpawnTM = FTransform(SpawnRotation, HandLocation);
+
+	FColor LineColor = bBlockingHit ? FColor::Green : FColor::Red; // This is an inline if else statement
+	DrawDebugLine(GetWorld(), Start, Hit.ImpactPoint, LineColor, false, 2.0f, 0, 2.0f);
+	// =================== ASSIGNMENT 2.1 // =================== 
 
 	// MDJ: THIRD INPUT
 	// Set up spawn parameters to use for spawning (many options to change, but we only interested in SpawnCollisionHandlingOverride (set to always Spawn)

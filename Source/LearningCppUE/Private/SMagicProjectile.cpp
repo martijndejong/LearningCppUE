@@ -33,6 +33,7 @@ ASMagicProjectile::ASMagicProjectile()
 
 	MovementComp = CreateDefaultSubobject<UProjectileMovementComponent>("MovementComp");
 	MovementComp->InitialSpeed = 1000.0f;
+	MovementComp->ProjectileGravityScale = 0.0f;
 	MovementComp->bRotationFollowsVelocity = true;
 	MovementComp->bInitialVelocityInLocalSpace = true;
 }
@@ -41,7 +42,8 @@ ASMagicProjectile::ASMagicProjectile()
 void ASMagicProjectile::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	// MDJ: learned this in BP in tutorial, now also done in C++
+	SphereComp->IgnoreActorWhenMoving(GetInstigator(), true);
 }
 
 // Called every frame

@@ -39,28 +39,6 @@ void USInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 }
 
 
-// MDJ: this is something I added myself to not have to copy paste logic into for loop when going from line trace to sphere (sweep) trace
-void USInteractionComponent::InteractWithActor(FHitResult Hit, AActor* MyOwner)
-{
-	AActor* HitActor = Hit.GetActor();
-	// MDJ: Check if HitActor is not null, because we do not want to call function on null pointers
-	if (HitActor)
-	{
-		// MDJ: Check if found Actor has USGameplayInterface (our interface class) implemented using "->Implements<Name>"
-		if (HitActor->Implements<USGameplayInterface>())
-		{
-			// MDJ: Cast MyOwner to APawn type so that it can be passed to our interface interact function (requires Pawn instead of Actor)
-			APawn* MyPawn = Cast<APawn>(MyOwner);
-
-			// MDJ: very particular way of executing function of interface:
-			//	reference interface and via 'Execute_<func_name>' execute the function
-			//	however, even then the first parameter is not the input we specified (APawn* IstigatorPawn), but the actor we want to call the function on
-			ISGameplayInterface::Execute_Interact(HitActor, MyPawn);
-		}
-	}
-}
-
-
 void USInteractionComponent::PrimaryInteract()
 {
 
@@ -75,7 +53,15 @@ void USInteractionComponent::PrimaryInteract()
 	AActor* MyOwner = GetOwner(); // from component this returns who you are attached to, so in this case our character
 	FVector EyeLocation;
 	FRotator EyeRotation;
-	MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
+	// MDJ: I did not like using GetActorEyesViewPoint, and wanted to use camera view point instead. Custom code for that is below
+	if (APawn* MyPawn = Cast<APawn>(MyOwner)) {
+		AController* MyController = MyPawn->GetController();
+		MyController->GetPlayerViewPoint(EyeLocation, EyeRotation);
+	}
+	else {
+		MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
+	}
+	// end of custom code
 
 	FVector Start = EyeLocation;
 	FVector End = EyeLocation + EyeRotation.Vector()*1000;
@@ -108,4 +94,25 @@ void USInteractionComponent::PrimaryInteract()
 	}
 
 	DrawDebugLine(GetWorld(), Start, End, LineColor, false, 2.0f, 0, 2.0f);
+}
+
+// MDJ: InteractWithActor is something I added myself to not have to copy paste logic into for loop when going from line trace to sphere (sweep) trace
+void USInteractionComponent::InteractWithActor(FHitResult Hit, AActor* MyOwner)
+{
+	AActor* HitActor = Hit.GetActor();
+	// MDJ: Check if HitActor is not null, because we do not want to call function on null pointers
+	if (HitActor)
+	{
+		// MDJ: Check if found Actor has USGameplayInterface (our interface class) implemented using "->Implements<Name>"
+		if (HitActor->Implements<USGameplayInterface>())
+		{
+			// MDJ: Cast MyOwner to APawn type so that it can be passed to our interface interact function (requires Pawn instead of Actor)
+			APawn* MyPawn = Cast<APawn>(MyOwner);
+
+			// MDJ: very particular way of executing function of interface:
+			//	reference interface and via 'Execute_<func_name>' execute the function
+			//	however, even then the first parameter is not the input we specified (APawn* IstigatorPawn), but the actor we want to call the function on
+			ISGameplayInterface::Execute_Interact(HitActor, MyPawn);
+		}
+	}
 }
