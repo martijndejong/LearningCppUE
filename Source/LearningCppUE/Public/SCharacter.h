@@ -10,6 +10,7 @@ class UCameraComponent;
 class USpringArmComponent;
 class USInteractionComponent;
 class UAnimMontage;
+class USAttributeComponent;
 
 UCLASS()
 class LEARNINGCPPUE_API ASCharacter : public ACharacter
@@ -32,6 +33,10 @@ protected:
 	// MDJ: this is for adding the interaction component to the character
 	UPROPERTY(VisibleAnywhere)
 	USInteractionComponent* InteractionComp;
+
+	// MDJ: Adding our own AttributeComponent to the SCharacter class
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components") // BlueprintReadOnly to get access to it on the BluePrint graph
+	USAttributeComponent* AttributeComp;
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

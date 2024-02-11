@@ -20,6 +20,11 @@ public:
 	ASMagicProjectile();
 
 protected:
+	// Must be marked up as UFUNCTION otherwise we cannot properly bind the event
+	UFUNCTION()
+	void OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+
 	// MDJ: 'UPROPERTY(VisibleAnywhere)' makes it visible and assignable from the editor
 	// MDJ: had to add BlueprintReadOnly to also be able to use it in the BP event graph
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)

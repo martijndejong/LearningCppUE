@@ -6,12 +6,12 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 
-// MDJ: include our own interaction component class
+// MDJ: include our own component classes
 #include "SInteractionComponent.h"
+#include "SAttributeComponent.h"
 
 // MDJ: Include this to enable 'GetCharacterMovement' 
 # include "GameFramework/CharacterMovementComponent.h"
-
 
 // MDJ: This include is added for DEBUG ARROWS
 #include "DrawDebugHelpers.h"
@@ -38,9 +38,13 @@ ASCharacter::ASCharacter()
 	// MDJ: Adding the selfmade interaction component
 	InteractionComp = CreateDefaultSubobject<USInteractionComponent>("InteractionComp");
 
+	// MDJ: Adding selfmade attribute component
+	AttributeComp = CreateDefaultSubobject<USAttributeComponent>("AttributeComp");
+
+
+	// MDJ: Fixing movement / lookaround input
 	// MDJ: below set direct property of ASCharacter (inherited from Actor parent class) to enable looking around without yawing character
 	bUseControllerRotationYaw = false;
-
 	// needed import -> I ctrl+clicked on the fuction to find cpp file, then went to top to find corresponding header file
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 }
@@ -160,56 +164,62 @@ void ASCharacter::PrimaryAttack()
 
 void ASCharacter::PrimaryAttack_TimeElapsed()
 {
-	// MDJ: Inputs for SpawnActor explained:
+	// MDJ: only run this code if ProjectileClass has been assigned (prevent NullPtr error)
+	// MDJ: 'ensure' is UE macro that works as a breakpoint if ProjectileClass=NullPtr and simply extends the regular if() behavior if ProjectileClass is assigned
+	// MDJ: it only highlights the breakpoint on first Play after compile, if it needs to always bring up the breakpoint use 'ensureAlways'
+	// MDJ: Upon compilation, 'ensure' does not do anything, so below code would effectively just be "if (ProjectileClass)" 
+	if (ensure(ProjectileClass)) {
+	// MDJ: Inputs for SpawnActor (last line of this function) explained:
 	// MDJ: FIRST INPUT 
 	// For the first input of SpawnActor we need to pass a class, to do this we need to add new UPROPERTY 'ProjectileClass' to SCharacter.h
 
 	// MDJ: SECOND INPUT 
 	// Set up Transformation Matrix to use for spawning actor -- first pass rotator (GetControlRotation) then vector (GetActorLocation -- or socket location)
-	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
-	// FTransform SpawnTM = FTransform(GetControlRotation(), HandLocation);
-	// =================== ASSIGNMENT 2.1 // =================== 
-	//				Fix Projectile Launch Direction
-	// line trace
-	FHitResult Hit;
-	FVector Start;
-	FVector End;
-	FCollisionObjectQueryParams ObjectQueryParams;
-	bool bBlockingHit;
+		FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
+		// FTransform SpawnTM = FTransform(GetControlRotation(), HandLocation);
+		// =================== ASSIGNMENT 2.1 // =================== 
+		//				Fix Projectile Launch Direction
+		// line trace
+		FHitResult Hit;
+		FVector Start;
+		FVector End;
+		FCollisionObjectQueryParams ObjectQueryParams;
+		bool bBlockingHit;
 
-	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldStatic);
-	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
-	ObjectQueryParams.AddObjectTypesToQuery(ECC_Pawn);
-	ObjectQueryParams.AddObjectTypesToQuery(ECC_PhysicsBody);
-	ObjectQueryParams.AddObjectTypesToQuery(ECC_Vehicle);
-	ObjectQueryParams.AddObjectTypesToQuery(ECC_Destructible);
+		ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldStatic);
+		ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+		ObjectQueryParams.AddObjectTypesToQuery(ECC_Pawn);
+		ObjectQueryParams.AddObjectTypesToQuery(ECC_PhysicsBody);
+		ObjectQueryParams.AddObjectTypesToQuery(ECC_Vehicle);
+		ObjectQueryParams.AddObjectTypesToQuery(ECC_Destructible);
 
-	FVector CameraLocation;
-	FRotator CameraRotation;
-	GetController()->GetPlayerViewPoint(CameraLocation, CameraRotation);
+		FVector CameraLocation;
+		FRotator CameraRotation;
+		GetController()->GetPlayerViewPoint(CameraLocation, CameraRotation);
 
-	Start = CameraLocation;
-	End = Start + CameraRotation.Vector() * 99999;
-	bBlockingHit = GetWorld()->LineTraceSingleByObjectType(Hit, Start, End, ObjectQueryParams);
+		Start = CameraLocation;
+		End = Start + CameraRotation.Vector() * 99999;
+		bBlockingHit = GetWorld()->LineTraceSingleByObjectType(Hit, Start, End, ObjectQueryParams);
 
-	// Compute Spawn Transform
-	FRotator SpawnRotation = bBlockingHit ? (Hit.ImpactPoint - HandLocation).Rotation() : CameraRotation;
-	FTransform SpawnTM = FTransform(SpawnRotation, HandLocation);
+		// Compute Spawn Transform
+		FRotator SpawnRotation = bBlockingHit ? (Hit.ImpactPoint - HandLocation).Rotation() : CameraRotation;
+		FTransform SpawnTM = FTransform(SpawnRotation, HandLocation);
 
-	FColor LineColor = bBlockingHit ? FColor::Green : FColor::Red; // This is an inline if else statement
-	DrawDebugLine(GetWorld(), Start, Hit.ImpactPoint, LineColor, false, 2.0f, 0, 2.0f);
-	// =================== ASSIGNMENT 2.1 // =================== 
+		FColor LineColor = bBlockingHit ? FColor::Green : FColor::Red; // This is an inline if else statement
+		DrawDebugLine(GetWorld(), Start, Hit.ImpactPoint, LineColor, false, 2.0f, 0, 2.0f);
+		// =================== ASSIGNMENT 2.1 // =================== 
 
-	// MDJ: THIRD INPUT
-	// Set up spawn parameters to use for spawning (many options to change, but we only interested in SpawnCollisionHandlingOverride (set to always Spawn)
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	// MDJ: THIS IS IMPORTANT TO AVOID SELF COLLISION! Pass self as 'instigator' to SpawnActor
-	SpawnParams.Instigator = this;
+		// MDJ: THIRD INPUT
+		// Set up spawn parameters to use for spawning (many options to change, but we only interested in SpawnCollisionHandlingOverride (set to always Spawn)
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		// MDJ: THIS IS IMPORTANT TO AVOID SELF COLLISION! Pass self as 'instigator' to SpawnActor
+		SpawnParams.Instigator = this;
 
-	// MDJ: We want to spawn the projectile actor. Spawning is always done through the world, so starts with GetWorld()
-	// MDJ: SpawnActor first expects <type> , so <AActor>, and then (class, transform, parameters)
-	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+		// MDJ: We want to spawn the projectile actor. Spawning is always done through the world, so starts with GetWorld()
+		// MDJ: SpawnActor first expects <type> , so <AActor>, and then (class, transform, parameters)
+		GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+	}
 }
 
 // MDJ: Note: we create a new function PrimaryInteract here for character class that is bound to action
