@@ -47,11 +47,15 @@ protected:
 
 	// MDJ: Must declare function to be referenced by BindAction -- no value has to be passed, "it will just triggers and that's it"
 	void PrimaryAttack();
+	void BlackholeAttack();
+	void Dash();
 
 	// MDJ: Declare PrimaryInteract function to be called when interact button is pressed
 	void PrimaryInteract();
 
-protected:
+	void SpawnProjectile(TSubclassOf<AActor> ClassToSpawn);
+
+
 	// MDJ: Setting a category is good practice to categorize in the editor (does not affect any way the code runs, solely for how it's shown in the editor)
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	UAnimMontage* AttackAnim;
@@ -59,12 +63,21 @@ protected:
 	// MDJ: This makes it so that from the BP you can set a 'ProjectileClass' (of type <AActor>) which will be used by SpawnActor in ASCharacter::PrimaryAttack()
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	TSubclassOf<AActor> ProjectileClass;
+	// MDJ: do the same for black hole and dash
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	TSubclassOf<AActor> BlackholeProjectileClass;
+	
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	TSubclassOf<AActor> DashProjectileClass;
 
 
 	// MDJ: Adding timer to time to animation with attack
 	FTimerHandle TimerHandle_PrimaryAttack;
-
 	void PrimaryAttack_TimeElapsed();
+
+	FTimerHandle TimerHandle_BlackholeAttack;
+	void BlackholeAttack_TimeElapsed();
+	
 
 public:	
 	// Called every frame

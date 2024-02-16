@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SMagicProjectile.h"
+#include "SProjectileBase.h"
 #include "STeleportProjectile.generated.h"
 
 class UParticleSystem;
 
 
 UCLASS()
-class LEARNINGCPPUE_API ASTeleportProjectile : public ASMagicProjectile
+class LEARNINGCPPUE_API ASTeleportProjectile : public ASProjectileBase
 {
 	GENERATED_BODY()
 
@@ -19,18 +19,15 @@ public:
 	ASTeleportProjectile();
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	UParticleSystem* ExplodeParticleSystem;
-	
-protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	// MDJ: Adding timer to time teleport
-	FTimerHandle TimerHandle_Explode;
-	FTimerHandle TimerHandle_Teleport;
+	FTimerHandle TimerHandle_DelayedExplode;
+	FTimerHandle TimerHandle_DelayedTeleport;
 
-	void Explode_TimeElapsed();
+	// Base class using BlueprintNativeEvent. We must override the _Implementation, not the Explode()
+	virtual void Explode_Implementation() override;
 	void Teleport_TimeElapsed();
 
 };

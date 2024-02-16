@@ -2,10 +2,7 @@
 
 
 #include "SMagicProjectile.h"
-
 #include "Components/SphereComponent.h"
-#include "Particles/ParticleSystemComponent.h"
-#include "GameFramework/ProjectileMovementComponent.h"
 
 #include "SAttributeComponent.h"
 
@@ -13,36 +10,35 @@
 // Sets default values
 ASMagicProjectile::ASMagicProjectile()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	//	============  COMMENTED CODE HAS BEEN MOVED TO NEW BASE CLASS (SProjectileBase.cpp) ============
 
-	// MDJ: Constructor: "make sure all of the components have an instance"
+	//// MDJ: Constructor: "make sure all of the components have an instance"
 
-	// MDJ: Add SphereComponent as root 
-	SphereComp = CreateDefaultSubobject<USphereComponent>("SphereComp");
-	RootComponent = SphereComp;
-	// MDJ: Collision settings can be changed in BP editor, but also here by default
-	// MDJ: Scalable way is kept uncommented: create new custom collision profile in editor and assign it to SphereComp
-	SphereComp->SetCollisionProfileName("Projectile");
-	// MDJ: Alternatively, you can also set all the collision properties here immediately, as shown in comments below
-	//SphereComp->SetCollisionObjectType(ECC_WorldDynamic);
-	//SphereComp->SetCollisionResponseToAllChannels(ECR_Ignore);
-	//SphereComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	//// MDJ: Add SphereComponent as root 
+	//SphereComp = CreateDefaultSubobject<USphereComponent>("SphereComp");
+	//RootComponent = SphereComp;
+	//// MDJ: Collision settings can be changed in BP editor, but also here by default
+	//// MDJ: Scalable way is kept uncommented: create new custom collision profile in editor and assign it to SphereComp
+	//SphereComp->SetCollisionProfileName("Projectile");
+	//// MDJ: Alternatively, you can also set all the collision properties here immediately, as shown in comments below
+	////SphereComp->SetCollisionObjectType(ECC_WorldDynamic);
+	////SphereComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+	////SphereComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 
-	// MDJ: Adding functionality on component overlap -- this requires a function to be created that executes, we called it &ASMagicProjectile::OnActorOverlap
-	// MDJ: that function needs specific, long list of inputs to fit the OnComponentBeginOverlap.AddDynamic
-	// MDJ: Go to definition of OnComponentBeginOverlap, then go to definition of FComponentBeginOverlapSignature to find all those inputs that can then be used in function declaration
+	//// MDJ: Adding functionality on component overlap -- this requires a function to be created that executes, we called it &ASMagicProjectile::OnActorOverlap
+	//// MDJ: that function needs specific, long list of inputs to fit the OnComponentBeginOverlap.AddDynamic
+	//// MDJ: Go to definition of OnComponentBeginOverlap, then go to definition of FComponentBeginOverlapSignature to find all those inputs that can then be used in function declaration
 	SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ASMagicProjectile::OnActorOverlap);
 	
 
-	EffectComp = CreateDefaultSubobject<UParticleSystemComponent>("EffectComp");
-	EffectComp->SetupAttachment(SphereComp);
+	//EffectComp = CreateDefaultSubobject<UParticleSystemComponent>("EffectComp");
+	//EffectComp->SetupAttachment(SphereComp);
 
-	MovementComp = CreateDefaultSubobject<UProjectileMovementComponent>("MovementComp");
-	MovementComp->InitialSpeed = 1000.0f;
-	MovementComp->ProjectileGravityScale = 0.0f;
-	MovementComp->bRotationFollowsVelocity = true;
-	MovementComp->bInitialVelocityInLocalSpace = true;
+	//MovementComp = CreateDefaultSubobject<UProjectileMovementComponent>("MovementComp");
+	//MovementComp->InitialSpeed = 1000.0f;
+	//MovementComp->ProjectileGravityScale = 0.0f;
+	//MovementComp->bRotationFollowsVelocity = true;
+	//MovementComp->bInitialVelocityInLocalSpace = true;
 }
 
 // MDJ: Apply damage to actor (if it has AttributeComponent)

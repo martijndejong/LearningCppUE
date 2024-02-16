@@ -101,6 +101,10 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	// MDJ: Bind action for spawning MagicProjectile
 	PlayerInputComponent->BindAction("PrimaryAttack", IE_Pressed, this, &ASCharacter::PrimaryAttack);
 
+	// MDJ: assignment 2: add SecondaryAttack (blackhole) and dash
+	PlayerInputComponent->BindAction("SecondaryAttack", IE_Pressed, this, &ASCharacter::BlackholeAttack);
+	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &ASCharacter::Dash);
+
 	// MDJ: Assignment 1: add character jump
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 
@@ -159,22 +163,52 @@ void ASCharacter::PrimaryAttack()
 	// GetWorldTimerManager().ClearTimer(TimerHandle_PrimaryAttack); <--- this would clear the timer, could be used e.g. when character dies so that it does not fire after death
 
 	// MDJ: Previously the code of PrimaryAttack_TimeElapsed was here, but it has been moved into that function so that it can executed by the timer
-
 }
 
 void ASCharacter::PrimaryAttack_TimeElapsed()
+{
+	SpawnProjectile(ProjectileClass);
+}
+
+void ASCharacter::BlackholeAttack()
+{
+	PlayAnimMontage(AttackAnim);
+	float AnimationDelay = 0.2f;
+	GetWorldTimerManager().SetTimer(TimerHandle_BlackholeAttack, this, &ASCharacter::BlackholeAttack_TimeElapsed, AnimationDelay);
+}
+
+void ASCharacter::BlackholeAttack_TimeElapsed()
+{
+	SpawnProjectile(BlackholeProjectileClass);
+}
+
+void ASCharacter::Dash()
+{
+	SpawnProjectile(DashProjectileClass);
+}
+
+// MDJ: Note: we create a new function PrimaryInteract here for character class that is bound to action
+//		this is a completely separate function from the InteractionComponent 'PrimaryInteract', they just have the same name 
+void ASCharacter::PrimaryInteract()
+{
+	InteractionComp->PrimaryInteract();
+}
+
+
+// MDJ: first the logic below was directly in PrimaryAttack, but it has been made re-usable below:
+void ASCharacter::SpawnProjectile(TSubclassOf<AActor> ClassToSpawn)
 {
 	// MDJ: only run this code if ProjectileClass has been assigned (prevent NullPtr error)
 	// MDJ: 'ensure' is UE macro that works as a breakpoint if ProjectileClass=NullPtr and simply extends the regular if() behavior if ProjectileClass is assigned
 	// MDJ: it only highlights the breakpoint on first Play after compile, if it needs to always bring up the breakpoint use 'ensureAlways'
 	// MDJ: Upon compilation, 'ensure' does not do anything, so below code would effectively just be "if (ProjectileClass)" 
-	if (ensure(ProjectileClass)) {
-	// MDJ: Inputs for SpawnActor (last line of this function) explained:
-	// MDJ: FIRST INPUT 
-	// For the first input of SpawnActor we need to pass a class, to do this we need to add new UPROPERTY 'ProjectileClass' to SCharacter.h
+	if (ensure(ClassToSpawn)) {
+		// MDJ: Inputs for SpawnActor (last line of this function) explained:
+		// MDJ: FIRST INPUT 
+		// For the first input of SpawnActor we need to pass a class, to do this we need to add new UPROPERTY 'ProjectileClass' to SCharacter.h
 
-	// MDJ: SECOND INPUT 
-	// Set up Transformation Matrix to use for spawning actor -- first pass rotator (GetControlRotation) then vector (GetActorLocation -- or socket location)
+		// MDJ: SECOND INPUT 
+		// Set up Transformation Matrix to use for spawning actor -- first pass rotator (GetControlRotation) then vector (GetActorLocation -- or socket location)
 		FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
 		// FTransform SpawnTM = FTransform(GetControlRotation(), HandLocation);
 		// =================== ASSIGNMENT 2.1 // =================== 
@@ -199,6 +233,8 @@ void ASCharacter::PrimaryAttack_TimeElapsed()
 
 		Start = CameraLocation;
 		End = Start + CameraRotation.Vector() * 99999;
+
+		// MDJ: Tom uses a 'SweepSingleByObjectType' and passes a Sphere (radius 20.0f) as collision shape (thus making it a SphereTrace)  -> to make it easier to hit something
 		bBlockingHit = GetWorld()->LineTraceSingleByObjectType(Hit, Start, End, ObjectQueryParams);
 
 		// Compute Spawn Transform
@@ -218,14 +254,7 @@ void ASCharacter::PrimaryAttack_TimeElapsed()
 
 		// MDJ: We want to spawn the projectile actor. Spawning is always done through the world, so starts with GetWorld()
 		// MDJ: SpawnActor first expects <type> , so <AActor>, and then (class, transform, parameters)
-		GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+		GetWorld()->SpawnActor<AActor>(ClassToSpawn, SpawnTM, SpawnParams);
 	}
-}
-
-// MDJ: Note: we create a new function PrimaryInteract here for character class that is bound to action
-//		this is a completely separate function from the InteractionComponent 'PrimaryInteract', they just have the same name 
-void ASCharacter::PrimaryInteract()
-{
-	InteractionComp->PrimaryInteract();
 }
 
