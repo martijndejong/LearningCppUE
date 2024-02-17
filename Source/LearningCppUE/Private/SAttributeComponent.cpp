@@ -17,3 +17,8 @@ bool USAttributeComponent::ApplyHealthChange(float Delta)
 
 	return true;
 }
+
+bool USAttributeComponent::IsAlive() const // MDJ: adding 'const' (also in .h) makes it a const function -> a 'getter' function, it has read-only access to this information
+{
+	return Health > 0.0f;
+}

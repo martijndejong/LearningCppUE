@@ -77,7 +77,13 @@ protected:
 
 	FTimerHandle TimerHandle_BlackholeAttack;
 	void BlackholeAttack_TimeElapsed();
-	
+
+
+	// MDJ: adding this in lecture 9 for stopping input on death
+	UFUNCTION()
+	void OnHealthChangedFunc(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta);
+	// MDJ: use PostInitializeComponents to bind the HealthChanged event to above function -- this is better than using the constructor for event binding
+	virtual void PostInitializeComponents() override;
 
 public:	
 	// Called every frame

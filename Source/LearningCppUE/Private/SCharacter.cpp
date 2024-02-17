@@ -49,6 +49,14 @@ ASCharacter::ASCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 }
 
+void ASCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	// MDJ: binding function to AttributeComp 'OnHealthChanged' event -- this function checks if player died and disables input
+	AttributeComp->OnHealthChanged.AddDynamic(this, &ASCharacter::OnHealthChangedFunc);
+}
+
 // Called when the game starts or when spawned
 void ASCharacter::BeginPlay()
 {
@@ -255,6 +263,17 @@ void ASCharacter::SpawnProjectile(TSubclassOf<AActor> ClassToSpawn)
 		// MDJ: We want to spawn the projectile actor. Spawning is always done through the world, so starts with GetWorld()
 		// MDJ: SpawnActor first expects <type> , so <AActor>, and then (class, transform, parameters)
 		GetWorld()->SpawnActor<AActor>(ClassToSpawn, SpawnTM, SpawnParams);
+	}
+}
+
+
+// MDJ: Prevent player from moving around when dead
+void ASCharacter::OnHealthChangedFunc(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta)
+{
+	if (NewHealth <= 0.0f && Delta < 0.0f)
+	{
+		APlayerController* PlayerController = Cast<APlayerController>(GetController());
+		DisableInput(PlayerController);
 	}
 }
 

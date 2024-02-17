@@ -51,4 +51,11 @@ public:
 	// MDJ: FOnHealthChanged event delegate is declared at the top of this script using DECLARE_DYNAMIC_MULTICAST_DELEGATE
 	UPROPERTY(BlueprintAssignable)
 	FOnHealthChanged OnHealthChanged;
+
+
+	// MDJ: Public function because we want to access it from the animation graph
+	// MDJ: and blueprint to access it from animBP
+	UFUNCTION(BlueprintCallable)
+	bool IsAlive() const; // MDJ: adding 'const' (also in .cpp) makes it a const function -> a 'getter' function, it has read-only access to this information
+						// that also means that the Blueprint function will no longer need an execution line (goes from Blue function with exec pin to Green function)
 };
