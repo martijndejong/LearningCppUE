@@ -32,6 +32,20 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UParticleSystemComponent* EffectComp;
 
+	// MDJ: Assignment 3
+	UPROPERTY(EditDefaultsOnly, Category = "SoundFX");
+	UAudioComponent* LoopSoundComp;
+	UPROPERTY(EditDefaultsOnly, Category = "SoundFX");
+	USoundBase* ImpactSFX;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Effects|Shake");
+	TSubclassOf<UCameraShakeBase> ImpactCameraShake;
+	UPROPERTY(EditDefaultsOnly, Category = "Effects|Shake")
+	float ImpactShakeInnerRadius;
+	UPROPERTY(EditDefaultsOnly, Category = "Effects|Shake")
+	float ImpactShakeOuterRadius;
+
+
 	// 'virtual' so we can override this in child-class
 	UFUNCTION()
 	virtual void OnActorHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
@@ -43,4 +57,7 @@ protected:
 	void Explode();
 
 	virtual void PostInitializeComponents() override;
+
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 };

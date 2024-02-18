@@ -270,10 +270,15 @@ void ASCharacter::SpawnProjectile(TSubclassOf<AActor> ClassToSpawn)
 // MDJ: Prevent player from moving around when dead
 void ASCharacter::OnHealthChangedFunc(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta)
 {
+	if (Delta < 0.0f)
+	{
+		// MDJ: hit flash effect -- same as 'TargetDummy'
+		GetMesh()->SetScalarParameterValueOnMaterials("TimeToHit", GetWorld()->TimeSeconds);
+	}
+
 	if (NewHealth <= 0.0f && Delta < 0.0f)
 	{
 		APlayerController* PlayerController = Cast<APlayerController>(GetController());
 		DisableInput(PlayerController);
 	}
 }
-

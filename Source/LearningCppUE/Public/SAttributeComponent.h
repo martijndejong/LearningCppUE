@@ -37,6 +37,8 @@ protected:
 	// MDJ: We put Attributes (e.g. Health) under 'Protected' because we do not want other classes to have direct access to it, we'll create a 'Public' function to make changes to this variable
 	// MDJ: EditDefaultOnly (instead of EditAnywhere) we cannot change it on Instance of player in the level (click on object), but only in Class Default section -- to prevent confusing overexposure 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Attributes")
+	float HealthMax;
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes")
 	float Health;
 
 public:	
@@ -49,13 +51,21 @@ public:
 	// MDJ: Add declared event delegate -- if you now open PlayerCharacterBP in editor (which has AttributeComponent attached)
 	//									   and you click on Attribute Comp, you'll see "On Health Changed" under the 'Events' tab
 	// MDJ: FOnHealthChanged event delegate is declared at the top of this script using DECLARE_DYNAMIC_MULTICAST_DELEGATE
-	UPROPERTY(BlueprintAssignable)
+	UPROPERTY(BlueprintAssignable, Category = "Attributes")
 	FOnHealthChanged OnHealthChanged;
 
 
 	// MDJ: Public function because we want to access it from the animation graph
 	// MDJ: and blueprint to access it from animBP
-	UFUNCTION(BlueprintCallable)
-	bool IsAlive() const; // MDJ: adding 'const' (also in .cpp) makes it a const function -> a 'getter' function, it has read-only access to this information
-						// that also means that the Blueprint function will no longer need an execution line (goes from Blue function with exec pin to Green function)
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+	bool IsAlive() const; 
+	// MDJ: adding 'const' (also in .cpp) makes it a const function -> a 'getter' function, it has read-only access to this information
+	// that also means that the Blueprint function will no longer need an execution line (goes from Blue function with exec pin to Green function)
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+	bool IsFullHealth() const;
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+	float GetHealth() const;
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+	float GetHealthMax() const;
+						
 };

@@ -54,7 +54,7 @@ void ASMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent,
 			// MDJ: Call our own ApplyHealthChange function of the custom AttributeComponent
 			AttributeComp->ApplyHealthChange(-20.0f);
 
-			Destroy();
+			Explode();
 		}
 	}
 }
