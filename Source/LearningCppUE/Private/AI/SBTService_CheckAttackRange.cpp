@@ -29,7 +29,7 @@ void USBTService_CheckAttackRange::TickNode(UBehaviorTreeComponent& OwnerComp, u
 				{
 					// MDJ: Check if within Attack Range
 					float DistanceTo = FVector::Distance(TargetActor->GetActorLocation(), AIPawn->GetActorLocation());
-					bool bWithinRange = DistanceTo < 1000.0f;
+					bool bWithinRange = DistanceTo < 2000.0f;
 
 					// MDJ: Check line of sight -- AI Controller has built in logic for this, so we do not have to set up a line trace
 					// MDJ: Only do line of sight check if within range, to save resources

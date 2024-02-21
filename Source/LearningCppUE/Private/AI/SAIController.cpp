@@ -9,16 +9,21 @@
 void ASAIController::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	// MDJ: RunBehaviorTree immediately available to AI controller class
-	RunBehaviorTree(BehaviorTree);
 
-
-	APawn* MyPawn = UGameplayStatics::GetPlayerPawn(this, 0);
-	if (MyPawn)
+	// MDJ: 'ensureMsgf' is like regular ensure but also leaves message in the output log <-- test this one by unsetting the BehaviorTree in 'MinionControllerBP'
+	if (ensureMsgf(BehaviorTree, TEXT("Behavior Tree is nullptr! Please assign BehaviorTree in your AI Controller.")))
 	{
-		GetBlackboardComponent()->SetValueAsVector("MoveToLocation", MyPawn->GetActorLocation());
-
-		GetBlackboardComponent()->SetValueAsObject("TargetActor", MyPawn);
+		// MDJ: 'RunBehaviorTree' is immediately available to AI controller class
+		RunBehaviorTree(BehaviorTree);
 	}
+	
+
+
+	//APawn* MyPawn = UGameplayStatics::GetPlayerPawn(this, 0);
+	//if (MyPawn)
+	//{
+	//	GetBlackboardComponent()->SetValueAsVector("MoveToLocation", MyPawn->GetActorLocation());
+
+	//	GetBlackboardComponent()->SetValueAsObject("TargetActor", MyPawn);
+	//}
 }

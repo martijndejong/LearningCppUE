@@ -6,6 +6,9 @@
 #include "GameFramework/Character.h"
 #include "SAICharacter.generated.h"
 
+
+class UPawnSensingComponent;
+
 UCLASS()
 class LEARNINGCPPUE_API ASAICharacter : public ACharacter
 {
@@ -16,15 +19,12 @@ public:
 	ASAICharacter();
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	virtual void PostInitializeComponents() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UPawnSensingComponent* PawnSensingComp; // MDJ: there is also AIPerception -- PawnSensing is the predecessor of AIPerception. AIPerception is 'better' more options
+											// PawnSensing is the most basic version and easier to set up. Since we only need basic functionality, it is more applicable for us
 
-	// MDJ: Don't need set up player input because it is an AI character
-	//// Called to bind functionality to input
-	//virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+	UFUNCTION()
+	void OnPawnSeen(APawn* Pawn);
 };

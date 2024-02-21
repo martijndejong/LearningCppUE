@@ -3,25 +3,50 @@
 
 #include "AI/SAICharacter.h"
 
+#include "Perception/PawnSensingComponent.h"
+#include "AIController.h"
+#include "BehaviorTree/BlackboardComponent.h"
+// #include "DrawDebugHelpers.h"
+#include "GameFramework/CharacterMovementComponent.h"
+
+
 // Sets default values
 ASAICharacter::ASAICharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	// MDJ: Add Pawn Sensing Component to our AI Character
+	PawnSensingComp = CreateDefaultSubobject<UPawnSensingComponent>("PawnSensingComp");
 
+	// MDJ: The movement of the AI Pawn was jerky - to make for smooth turning, we fiddled with below settings in BP
+	//		After finding the correct settings, you can 'bake' them into your C++ class (as done below)
+	GetCharacterMovement()->bUseControllerDesiredRotation = true;
+	bUseControllerRotationYaw = false;
 }
 
-// Called when the game starts or when spawned
-void ASAICharacter::BeginPlay()
+// MDJ: Do binding of events in PostInitializeComponents() to prevent issues that were faced when doing this in the constructor
+void ASAICharacter::PostInitializeComponents()
 {
-	Super::BeginPlay();
-	
+	Super::PostInitializeComponents();
+
+
+	// MDJ: Bind the OnSeePawn event of the PawnSensingComp to run our ASAICharacter::OnPawnSeen function
+	// 
+	// MDJ: To find the name of the delegate, go to the <UPawnSensingComponent> .h (crtl click it) 
+	//		At the top you will see DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam( FSeePawnDelegate, APawn*, Pawn ); 
+	//		Search the 'FSeePawnDelegate' and we see it executes delegate 'OnSeePawn'
+	//		To see an implementation of this from scratch, look at the SAttributeComponent .h (for delegate declaration) and .cpp (for broadcasting)
+	PawnSensingComp->OnSeePawn.AddDynamic(this, &ASAICharacter::OnPawnSeen);
 }
 
-// Called every frame
-void ASAICharacter::Tick(float DeltaTime)
+// MDJ: This functions sets the "TargetActor" in the BlackboardComponent of the AI to the sensed (seen) Pawn
+void ASAICharacter::OnPawnSeen(APawn* Pawn)
 {
-	Super::Tick(DeltaTime);
+	AAIController* AIController = Cast<AAIController>(GetController());
+	if (AIController)
+	{
+		UBlackboardComponent* BBComp = AIController->GetBlackboardComponent();
 
+		BBComp->SetValueAsObject("TargetActor", Pawn);
+
+		DrawDebugString(GetWorld(), GetActorLocation(), "PLAYER SPOTTED", nullptr, FColor::White, 4.0f, true);
+	}
 }
-
