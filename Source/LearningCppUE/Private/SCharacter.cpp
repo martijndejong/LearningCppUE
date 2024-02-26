@@ -47,6 +47,10 @@ ASCharacter::ASCharacter()
 	bUseControllerRotationYaw = false;
 	// needed import -> I ctrl+clicked on the fuction to find cpp file, then went to top to find corresponding header file
 	GetCharacterMovement()->bOrientRotationToMovement = true;
+
+
+	// MDJ: Set this as UPROPERTY and default value (here) so that it is visible in editor and not hardcoded into functions
+	HandSocketName = "Muzzle_01";
 }
 
 void ASCharacter::PostInitializeComponents()
@@ -217,7 +221,7 @@ void ASCharacter::SpawnProjectile(TSubclassOf<AActor> ClassToSpawn)
 
 		// MDJ: SECOND INPUT 
 		// Set up Transformation Matrix to use for spawning actor -- first pass rotator (GetControlRotation) then vector (GetActorLocation -- or socket location)
-		FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
+		FVector HandLocation = GetMesh()->GetSocketLocation(HandSocketName);
 		// FTransform SpawnTM = FTransform(GetControlRotation(), HandLocation);
 		// =================== ASSIGNMENT 2.1 // =================== 
 		//				Fix Projectile Launch Direction

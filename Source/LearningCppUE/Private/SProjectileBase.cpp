@@ -30,7 +30,8 @@ ASProjectileBase::ASProjectileBase()
 	// MDJ: Go to definition of OnComponentBeginOverlap, then go to definition of FComponentBeginOverlapSignature to find all those inputs that can then be used in function declaration
 	// SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ASMagicProjectile::OnActorOverlap); ------ this is left in original script
 
-
+	// MDJ: Classes derived from 'USceneComponent' need to be attached because they have spatial location
+	//		Unlike derived directly from 'UActorComponent' which does not have a position
 	EffectComp = CreateDefaultSubobject<UParticleSystemComponent>("EffectComp");
 	EffectComp->SetupAttachment(SphereComp);
 

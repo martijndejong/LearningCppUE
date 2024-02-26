@@ -38,6 +38,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components") // BlueprintReadOnly to get access to it on the BluePrint graph
 	USAttributeComponent* AttributeComp;
 
+	// MDJ: VisibleAnywhere = read-only, still useful to view in-editor and enforce a convention
+	UPROPERTY(VisibleAnywhere, Category = "Effects")
+	FName HandSocketName;
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 

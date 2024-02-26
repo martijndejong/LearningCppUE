@@ -8,6 +8,7 @@
 
 
 class UPawnSensingComponent;
+class USAttributeComponent;
 
 UCLASS()
 class LEARNINGCPPUE_API ASAICharacter : public ACharacter
@@ -27,4 +28,12 @@ protected:
 
 	UFUNCTION()
 	void OnPawnSeen(APawn* Pawn);
+
+
+	// MDJ: Assignment 4: 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	USAttributeComponent* AttributeComp;
+
+	UFUNCTION()
+	void OnHealthChangedFunc(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta);
 };
