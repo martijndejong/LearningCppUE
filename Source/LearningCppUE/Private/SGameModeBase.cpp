@@ -26,6 +26,38 @@ void ASGameModeBase::StartPlay()
 
 void ASGameModeBase::SpawnBotTimerElapsed()
 {
+	// MDJ: Limit the number of AI spawned in the level at once using 'TActorIterator' -- "is like a better version of 'GetAllActorsOfClass'
+	int32 NrOfAliveBots = 0;
+	for (TActorIterator<ASAICharacter> It(GetWorld()); It; ++It)
+	{
+		ASAICharacter* Bot = *It;
+
+
+		USAttributeComponent* AttributeComp = USAttributeComponent::GetAttributes(Bot); // MDJ: This is like our own version of a GameplayStatics function
+		if (AttributeComp && AttributeComp->IsAlive())
+		{
+			NrOfAliveBots++;
+		}
+	}
+	UE_LOG(LogTemp, Log, TEXT("Found %i alive bots."), NrOfAliveBots);
+
+	float MaxBotCount = 10.0f;
+	// MDJ: Using a UCurveFloat to progressively increase difficulty -- assigned asset made in UE editor (right click > miscellaneous > curve)
+	if (DifficultyFloat)
+	{
+		MaxBotCount = DifficultyFloat->GetFloatValue(GetWorld()->TimeSeconds);
+	}
+
+	if (NrOfAliveBots >= MaxBotCount)
+	{
+		UE_LOG(LogTemp, Log, TEXT("At maximum capacity. Skipping bot spawn."));
+		return; // MDJ: "Early out" when not wanting to run the EQS query
+	}
+	// end of limiting spawn count
+
+
+
+
 	UEnvQueryInstanceBlueprintWrapper* QueryInstance = UEnvQueryManager::RunEQSQuery(this, SpawnBotQuery, this, EEnvQueryRunMode::RandomBest5Pct, nullptr);
 
 	// Ensure added, because could easily go wrong with user error if no SpawnBotQuery is set in editor
@@ -48,39 +80,6 @@ void ASGameModeBase::OnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryIn
 		return;
 	}
 
-	
-
-
-	// MDJ: Limit the number of AI spawned in the level at once using 'TActorIterator' -- "is like a better version of 'GetAllActorsOfClass'
-	int32 NrOfAliveBots = 0;
-	for (TActorIterator<ASAICharacter> It(GetWorld()); It; ++It)
-	{
-		ASAICharacter* Bot = *It;
-
-
-		USAttributeComponent* AttributeComp = Cast<USAttributeComponent>(Bot->GetComponentByClass(USAttributeComponent::StaticClass()));
-		if (AttributeComp && AttributeComp->IsAlive())
-		{
-			NrOfAliveBots++;
-		}
-	}
-	float MaxBotCount = 10.0f;
-
-	// MDJ: Using a UCurveFloat to progressively increase difficulty -- assigned asset made in UE editor (right click > miscellaneous > curve)
-	if (DifficultyFloat)
-	{
-		MaxBotCount = DifficultyFloat->GetFloatValue(GetWorld()->TimeSeconds);
-	}
-
-	if (NrOfAliveBots >= MaxBotCount)
-	{
-		return;
-	}
-	// end of limiting spawn count
-
-
-
-
 	TArray<FVector> Locations = QueryInstance->GetResultsAsLocations();
 
 	// MDJ: Check if returned locations array in fact has elements
@@ -88,5 +87,8 @@ void ASGameModeBase::OnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryIn
 	{
 		// MDJ: Spawn minion class at first array element
 		GetWorld()->SpawnActor<AActor>(MinionClass, Locations[0], FRotator::ZeroRotator);
+
+		// Track all used spawn locations
+		DrawDebugSphere(GetWorld(), Locations[0], 50.0f, 20, FColor::Blue, false, 60.0f);
 	}
 }

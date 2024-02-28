@@ -19,7 +19,7 @@ void ASPowerup_HealthPotion::Interact_Implementation(APawn* InstigatorPawn)
 	{
 		// MDJ: Call our own ApplyHealthChange function of the custom AttributeComponent
 		// MDJ: Should make the 50.0f a tweakable variable
-		AttributeComp->ApplyHealthChange(+50.0f);
+		AttributeComp->ApplyHealthChange(this, +50.0f);
 
 		HideAndCooldownPowerup();
 	}

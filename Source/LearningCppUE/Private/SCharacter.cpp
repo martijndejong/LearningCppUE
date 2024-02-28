@@ -51,6 +51,7 @@ ASCharacter::ASCharacter()
 
 	// MDJ: Set this as UPROPERTY and default value (here) so that it is visible in editor and not hardcoded into functions
 	HandSocketName = "Muzzle_01";
+	TimeToHitParamName = "TimeToHit";
 }
 
 void ASCharacter::PostInitializeComponents()
@@ -277,7 +278,7 @@ void ASCharacter::OnHealthChangedFunc(AActor* InstigatorActor, USAttributeCompon
 	if (Delta < 0.0f)
 	{
 		// MDJ: hit flash effect -- same as 'TargetDummy'
-		GetMesh()->SetScalarParameterValueOnMaterials("TimeToHit", GetWorld()->TimeSeconds);
+		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->TimeSeconds);
 	}
 
 	if (NewHealth <= 0.0f && Delta < 0.0f)

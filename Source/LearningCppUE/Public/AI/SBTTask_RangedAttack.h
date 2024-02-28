@@ -21,4 +21,10 @@ protected:
 	// MDJ: Had to set to 'EditAnywhere' to properly expose to our AI window, 'EditDefaultOnly' would NOT make it visible in editor
 	UPROPERTY(EditAnywhere, Category = "AI")
 	TSubclassOf<AActor> ProjectileClass;
+
+	UPROPERTY(EditAnywhere, Category = "AI")
+	float MaxBulletSpread;
+
+public:
+	USBTTask_RangedAttack();
 };

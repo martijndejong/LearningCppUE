@@ -89,6 +89,9 @@ protected:
 	// MDJ: use PostInitializeComponents to bind the HealthChanged event to above function -- this is better than using the constructor for event binding
 	virtual void PostInitializeComponents() override;
 
+	UPROPERTY(VisibleAnywhere, Category = "Effects")
+	FName TimeToHitParamName;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

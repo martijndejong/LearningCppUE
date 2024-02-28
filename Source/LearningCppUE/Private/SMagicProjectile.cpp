@@ -30,6 +30,7 @@ ASMagicProjectile::ASMagicProjectile()
 	//// MDJ: Go to definition of OnComponentBeginOverlap, then go to definition of FComponentBeginOverlapSignature to find all those inputs that can then be used in function declaration
 	SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ASMagicProjectile::OnActorOverlap);
 	
+	Damage = 20.0f;
 
 	//EffectComp = CreateDefaultSubobject<UParticleSystemComponent>("EffectComp");
 	//EffectComp->SetupAttachment(SphereComp);
@@ -52,7 +53,7 @@ void ASMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent,
 		if (AttributeComp)
 		{
 			// MDJ: Call our own ApplyHealthChange function of the custom AttributeComponent
-			AttributeComp->ApplyHealthChange(-20.0f);
+			AttributeComp->ApplyHealthChange(GetInstigator(), -Damage);
 
 			Explode();
 		}

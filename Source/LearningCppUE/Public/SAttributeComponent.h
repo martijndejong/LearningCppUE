@@ -16,6 +16,13 @@ class LEARNINGCPPUE_API USAttributeComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:	
+	UFUNCTION(BlueprintCallable, Category = "Attributes") // MDJ: Handy, BlueprintCallable makes it available as a node in BP
+	// MDJ: Important to make it 'static' -- makes it not called on the component instance but on a static context
+	static USAttributeComponent* GetAttributes(AActor* FromActor);
+	
+	UFUNCTION(BlueprintCallable, Category = "Attributes", meta = (DisplayName = "IsAlive")) // MDJ: 'meta' gives options about how functions show up in editor
+	static bool IsActorAlive(AActor* Actor); // MDJ: because it is marked as static, we need to pass Actor to the function now (it cannot grab it directly from the component instance)
+
 	// Sets default values for this component's properties
 	USAttributeComponent();
 
@@ -45,7 +52,7 @@ public:
 	// MDJ: Here we put the function to change the Health, this will be 'Public' because we do want the outside to have access to it
 	// MDJ: Make it a UFUNCTION(BlueprintCallable) so that it is exposed to BluePrints
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
-	bool ApplyHealthChange(float Delta);
+	bool ApplyHealthChange(AActor* InstigatorActor, float Delta);
 
 
 	// MDJ: Add declared event delegate -- if you now open PlayerCharacterBP in editor (which has AttributeComponent attached)

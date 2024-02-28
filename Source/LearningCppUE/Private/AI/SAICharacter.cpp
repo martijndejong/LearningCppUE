@@ -5,6 +5,7 @@
 
 #include "Perception/PawnSensingComponent.h"
 #include "AIController.h"
+#include "BrainComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 // #include "DrawDebugHelpers.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -28,6 +29,8 @@ ASAICharacter::ASAICharacter()
 
 	// MDJ: AI also did not auto possess when Spawned (only when placed) thus change this in BP and now baked into C++ constructor:
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+	TimeToHitParamName = "TimeToHit";
 }
 
 // MDJ: Do binding of events in PostInitializeComponents() to prevent issues that were faced when doing this in the constructor
@@ -50,20 +53,6 @@ void ASAICharacter::PostInitializeComponents()
 	AttributeComp->OnHealthChanged.AddDynamic(this, &ASAICharacter::OnHealthChangedFunc);
 }
 
-// MDJ: This functions sets the "TargetActor" in the BlackboardComponent of the AI to the sensed (seen) Pawn
-void ASAICharacter::OnPawnSeen(APawn* Pawn)
-{
-	AAIController* AIController = Cast<AAIController>(GetController());
-	if (AIController)
-	{
-		UBlackboardComponent* BBComp = AIController->GetBlackboardComponent();
-
-		BBComp->SetValueAsObject("TargetActor", Pawn);
-
-		DrawDebugString(GetWorld(), GetActorLocation(), "PLAYER SPOTTED", nullptr, FColor::White, 4.0f, true);
-	}
-}
-
 
 // MDJ: BELOW FUNCTION COPIED DIRECTLY FROM ASCharacter::OnHealthChangedFunc
 void ASAICharacter::OnHealthChangedFunc(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta)
@@ -71,15 +60,30 @@ void ASAICharacter::OnHealthChangedFunc(AActor* InstigatorActor, USAttributeComp
 	if (Delta < 0.0f)
 	{
 		// MDJ: hit flash effect -- same as 'TargetDummy'
-		GetMesh()->SetScalarParameterValueOnMaterials("TimeToHit", GetWorld()->TimeSeconds);
-	}
+		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->TimeSeconds);
 
-	if (NewHealth <= 0.0f && Delta < 0.0f)
-	{
-		AAIController* AIController = Cast<AAIController>(GetController());
-		if (ensure(AIController))
+		// MDJ: Set TargetActor to the instigator who attacked the AI character (sensing)
+		if (InstigatorActor != this) // MDJ: Only do this if the instigator is not ourselves
 		{
-			Destroy();
+			SetTargetActor(InstigatorActor);
+		}
+
+		if (NewHealth <= 0.0f)
+		{
+			// Stop BT
+			AAIController* AIController = Cast<AAIController>(GetController());
+			if (AIController)
+			{
+				AIController->GetBrainComponent()->StopLogic("Killed"); // MDJ: "Killed" here is only for debugging purposes, does not influence gameplay
+			}
+
+			// Ragdoll
+			// MDJ: Need to use GetMesh() instead of accessing mesh directly because they have marked the Mesh in character class as private
+			GetMesh()->SetAllBodiesSimulatePhysics(true);
+			GetMesh()->SetCollisionProfileName("Ragdoll"); // MDJ: Change Collision profile because original one only does Query (no physics) so sinks through ground
+
+			// Set lifespan (destroy actor)
+			SetLifeSpan(10.0f);
 		}
 	}
 
@@ -88,4 +92,21 @@ void ASAICharacter::OnHealthChangedFunc(AActor* InstigatorActor, USAttributeComp
 	{
 		DrawDebugString(GetWorld(), GetActorLocation(), "LOW HEALTH", nullptr, FColor::Red, 4.0f, true);
 	}
+}
+
+// MDJ: This functions sets the "TargetActor" in the BlackboardComponent of the AI to the sensed (seen) Pawn
+void ASAICharacter::SetTargetActor(AActor* NewTarget)
+{
+	AAIController* AIController = Cast<AAIController>(GetController());
+	if (AIController)
+	{
+		AIController->GetBlackboardComponent()->SetValueAsObject("TargetActor", NewTarget);
+	}
+}
+
+// MDJ: This function is bound to OnPawnSeen event and then calls SetTargetActor to set new TargetActor
+void ASAICharacter::OnPawnSeen(APawn* Pawn)
+{
+	SetTargetActor(Pawn);
+	DrawDebugString(GetWorld(), GetActorLocation(), "PLAYER SPOTTED", nullptr, FColor::White, 4.0f, true);
 }

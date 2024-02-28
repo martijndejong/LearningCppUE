@@ -22,6 +22,8 @@ public:
 protected:
 	virtual void PostInitializeComponents() override;
 
+	void SetTargetActor(AActor* NewTarget);
+
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UPawnSensingComponent* PawnSensingComp; // MDJ: there is also AIPerception -- PawnSensing is the predecessor of AIPerception. AIPerception is 'better' more options
 											// PawnSensing is the most basic version and easier to set up. Since we only need basic functionality, it is more applicable for us
@@ -36,4 +38,7 @@ protected:
 
 	UFUNCTION()
 	void OnHealthChangedFunc(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta);
+
+	UPROPERTY(VisibleAnywhere, Category = "Effects")
+	FName TimeToHitParamName;
 };

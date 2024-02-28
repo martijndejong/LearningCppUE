@@ -6,6 +6,14 @@
 #include "AIController.h"
 #include "GameFramework/Character.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "SAttributeComponent.h"
+
+
+USBTTask_RangedAttack::USBTTask_RangedAttack()
+{
+	MaxBulletSpread = 2.0f; // default value (degrees)
+}
+
 
 EBTNodeResult::Type USBTTask_RangedAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
@@ -30,9 +38,20 @@ EBTNodeResult::Type USBTTask_RangedAttack::ExecuteTask(UBehaviorTreeComponent& O
 			return EBTNodeResult::Failed;
 		}
 
+		// MDJ: Check if target actor is alive, if not, return failed
+		// MDJ: using our custom static function to check if actor if alive without having to get their AttributeComponent instance
+		// MDJ: Would be bad practice to also set TargetActor to nullptr here, because that is not the responsibility of this Task
+		if (!USAttributeComponent::IsActorAlive(TargetActor))
+		{
+			return EBTNodeResult::Failed;
+		}
+
 		// MDJ: Calculate direction in which ranged attack will be fired
 		FVector Direction = TargetActor->GetActorLocation() - MuzzleLocation;
 		FRotator MuzzleRotation = Direction.Rotation();
+		// Add random bullet spread to spawn rotator
+		MuzzleRotation.Pitch += FMath::RandRange(0.0f, MaxBulletSpread); // MDJ: min pitch spread to 0 so that he does not shoot into floor
+		MuzzleRotation.Yaw += FMath::RandRange(-MaxBulletSpread, MaxBulletSpread);
 
 		// MDJ: Set up spawn parameters -- set collision handling to always spawn
 		FActorSpawnParameters Params;
@@ -46,3 +65,4 @@ EBTNodeResult::Type USBTTask_RangedAttack::ExecuteTask(UBehaviorTreeComponent& O
 	}
 	return EBTNodeResult::Failed;
 }
+
