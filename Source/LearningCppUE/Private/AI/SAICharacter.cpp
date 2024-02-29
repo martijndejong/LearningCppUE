@@ -12,6 +12,7 @@
 
 // Assignment 4
 #include "SAttributeComponent.h"
+#include "SWorldUserWidget.h"
 
 // Sets default values
 ASAICharacter::ASAICharacter()
@@ -59,6 +60,24 @@ void ASAICharacter::OnHealthChangedFunc(AActor* InstigatorActor, USAttributeComp
 {
 	if (Delta < 0.0f)
 	{
+		// MDJ: Lecture 14: add onscreen health bar when hit
+		if (ActiveHealthBar == nullptr)
+		{
+			// MDJ: ActiveHealthBar NOT a local variable, so that it can be referenced, i.e., only create widget if ActiveHealthBar is nullptr
+			//		this is done by adding "USWorldUserWidget* ActiveHealthBar;" in the .h file
+			ActiveHealthBar = CreateWidget<USWorldUserWidget>(GetWorld(), HealthBarWidgetClass);
+			// MDJ: Only add to viewport if succesfully created
+			if (ActiveHealthBar)
+			{
+				// MDJ: Must set AttachedActor BEFORE AddToViewPort(), because add to viewport will run 'Event Construct' in BP
+				//		Go look at MinionHealth_Widget BP Graph 'Event Construct' and you will see that it references AttachedActor
+				ActiveHealthBar->AttachedActor = this;
+				ActiveHealthBar->AddToViewport();
+			}
+		}
+		
+
+
 		// MDJ: hit flash effect -- same as 'TargetDummy'
 		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->TimeSeconds);
 

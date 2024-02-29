@@ -9,6 +9,7 @@
 
 class UPawnSensingComponent;
 class USAttributeComponent;
+class USWorldUserWidget;
 
 UCLASS()
 class LEARNINGCPPUE_API ASAICharacter : public ACharacter
@@ -20,6 +21,12 @@ public:
 	ASAICharacter();
 
 protected:
+
+	USWorldUserWidget* ActiveHealthBar;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> HealthBarWidgetClass; // MDJ: Lecture 14: add onscreen healthbar
+
 	virtual void PostInitializeComponents() override;
 
 	void SetTargetActor(AActor* NewTarget);
