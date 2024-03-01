@@ -99,4 +99,12 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+
+	// MDJ: Lecture 14.4 exec function (console command) -- these will work automatically if in:
+	//		1 Character you're controlling
+	//		2 Player Controller
+	//		3 GameMode
+	//		4 Cheat manager
+	UFUNCTION(Exec)
+	void HealSelf(float Amount=100);
 };

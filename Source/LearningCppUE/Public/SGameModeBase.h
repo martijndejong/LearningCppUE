@@ -45,5 +45,9 @@ public:
 
 	// GameModeBase does not have BeginPlay - it actualy calls BeginPlay on all actors -- instead it has StartPlay
 	virtual void StartPlay() override;
+
+
+	UFUNCTION(Exec)
+	void KillAll();
 	
 };

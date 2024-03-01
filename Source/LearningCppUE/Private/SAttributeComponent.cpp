@@ -14,6 +14,10 @@ USAttributeComponent::USAttributeComponent()
 	Health = HealthMax;
 }
 
+bool USAttributeComponent::Kill(AActor* InstigatorActor)
+{
+	return ApplyHealthChange(InstigatorActor, -GetHealthMax());
+}
 
 bool USAttributeComponent::IsAlive() const // MDJ: adding 'const' (also in .h) makes it a const function -> a 'getter' function, it has read-only access to this information
 {
@@ -35,8 +39,17 @@ float USAttributeComponent::GetHealthMax() const
 	return HealthMax;
 }
 
+
 bool USAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Delta) // MDJ: Make sure you do not call just 'Instigator' because that is already used in UE base class
 {
+	// MDJ: Lecture 14.4 -- checking 'CanBeDamaged' (standard in every actor) already implemented in 'CheatManager' under "God mode"
+	//		Early out if actor cannot be damaged
+	if (!GetOwner()->CanBeDamaged())
+	{
+		return false;
+	}
+
+
 	// MDJ: set old health to calculate ActualDelta and pass that to broadcast and return
 	float OldHealth = Health;
 

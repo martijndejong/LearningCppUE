@@ -125,6 +125,11 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this, &ASCharacter::PrimaryInteract);
 }
 
+void ASCharacter::HealSelf(float Amount /* = 100 */) // MDJ: the "= 100" here is just a comment to indicate we have set default value in the .h
+{
+	AttributeComp->ApplyHealthChange(this, Amount);
+}
+
 
 // MDJ: Create MoveForward function to be passed to BindAxis
 void ASCharacter::MoveForward(float Value)

@@ -24,6 +24,22 @@ void ASGameModeBase::StartPlay()
 	GetWorldTimerManager().SetTimer(TimerHandle_SpawnBots, this, &ASGameModeBase::SpawnBotTimerElapsed, SpawnTimerInterval, true);
 }
 
+// MDJ: Lecture 14.4 add KillAll console command (Exec function)
+void ASGameModeBase::KillAll()
+{
+	for (TActorIterator<ASAICharacter> It(GetWorld()); It; ++It)
+	{
+		ASAICharacter* Bot = *It;
+
+
+		USAttributeComponent* AttributeComp = USAttributeComponent::GetAttributes(Bot); // MDJ: This is like our own version of a GameplayStatics function
+		if (AttributeComp && AttributeComp->IsAlive())
+		{
+			AttributeComp->Kill(this); // @TODO: pass in player? for kill credit
+		}
+	}
+}
+
 void ASGameModeBase::SpawnBotTimerElapsed()
 {
 	// MDJ: Limit the number of AI spawned in the level at once using 'TActorIterator' -- "is like a better version of 'GetAllActorsOfClass'
