@@ -40,6 +40,10 @@ protected:
 				//		"Unable to bind delegate to 'OnQueryCompleted' (function might not be marked as a UFUNCTION or object may be pending kill)"
 	void OnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);
 
+	// MDJ: Lecture 15.2 -- adding Timer Delegate with function
+	UFUNCTION()
+	void RespawnPlayerElapsed(AController* Controller);
+
 public: 
 	ASGameModeBase();
 
@@ -49,5 +53,9 @@ public:
 
 	UFUNCTION(Exec)
 	void KillAll();
+
+	// MDJ: Lecture 15.2
+	// MDJ: Make virtual so that it can be overwritten in child classes of gamemode
+	virtual void OnActorKilled(AActor* VictimActor, AActor* Killer);
 	
 };

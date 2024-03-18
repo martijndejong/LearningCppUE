@@ -6,6 +6,15 @@
 // MDJ: imported for FMath::Clamp
 #include "Math/UnrealMathUtility.h"
 
+// MDJ: imported for OnActorKilled
+#include "SGameModeBase.h"
+
+
+
+// MDJ: Lecture 15.3 console variable -- more detailed comment in SGameModeBase.cpp
+static TAutoConsoleVariable<float>CVarDamageMultiplier(TEXT("su.DamageMultiplier"), 1.0f, TEXT("Global Damage Modifier for Attribute Component."), ECVF_Cheat);
+
+
 
 // Sets default values for this component's properties
 USAttributeComponent::USAttributeComponent()
@@ -49,6 +58,13 @@ bool USAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Delt
 		return false;
 	}
 
+	// MDJ: Lecture 15.3 Console Variable to globally change damage multiplied -- super nice for working on game feel live in the editor
+	if (Delta < 0.0f)
+	{
+		float DamageMultiplier = CVarDamageMultiplier.GetValueOnGameThread();
+		Delta *= DamageMultiplier;
+	}
+
 
 	// MDJ: set old health to calculate ActualDelta and pass that to broadcast and return
 	float OldHealth = Health;
@@ -59,6 +75,18 @@ bool USAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Delt
 	float ActualDelta = Health - OldHealth;
 	// MDJ: Broadcast variables to 'OnHealthChanged' Event Delegate
 	OnHealthChanged.Broadcast(InstigatorActor, this, Health, ActualDelta);
+
+	// Died
+	if (ActualDelta < 0.0f && Health == 0.0f)
+	{
+		// MDJ: Here we do direct function call on GameMode -- usually this is bad practice and should be done with event binding
+		//		but for GameMode, since there is only one and it does not add clutter, it is okay to make such a link
+		ASGameModeBase* GM = GetWorld()->GetAuthGameMode<ASGameModeBase>();
+		if (GM)
+		{
+			GM->OnActorKilled(GetOwner(), InstigatorActor);
+		}
+	}
 
 	return ActualDelta != 0;
 }

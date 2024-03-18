@@ -6,6 +6,9 @@
 
 #include "SAttributeComponent.h"
 
+// Lecture 15.3: Add our own GameplayFunctionLibrary for Apply(Directional)Damage
+#include "SGameplayFunctionLibrary.h"
+
 
 // Sets default values
 ASMagicProjectile::ASMagicProjectile()
@@ -47,14 +50,21 @@ void ASMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent,
 {
 	if (OtherActor && OtherActor != GetInstigator()) 
 	{
-		// MDJ: GetComponentByClass returns a UActorComponent*, thus a Cast must be added to convert to our AttributeComponent class
-		// MDJ: ::StaticClass() can be added to get a reference to the static class (purple in BP)
-		USAttributeComponent* AttributeComp = Cast<USAttributeComponent>(OtherActor->GetComponentByClass(USAttributeComponent::StaticClass()));
-		if (AttributeComp)
-		{
-			// MDJ: Call our own ApplyHealthChange function of the custom AttributeComponent
-			AttributeComp->ApplyHealthChange(GetInstigator(), -Damage);
+		// MDJ: Code below commented out because we will use our own GameplayFunctionLibrary ApplyDirectionalDamage instead
+ 
+		//// MDJ: GetComponentByClass returns a UActorComponent*, thus a Cast must be added to convert to our AttributeComponent class
+		//// MDJ: ::StaticClass() can be added to get a reference to the static class (purple in BP)
+		//USAttributeComponent* AttributeComp = Cast<USAttributeComponent>(OtherActor->GetComponentByClass(USAttributeComponent::StaticClass()));
+		//if (AttributeComp)
+		//{
+		//	// MDJ: Call our own ApplyHealthChange function of the custom AttributeComponent
+		//	AttributeComp->ApplyHealthChange(GetInstigator(), -Damage);
 
+		//	Explode();
+		//}
+
+		if (USGameplayFunctionLibrary::ApplyDirectionalDamage(GetInstigator(), OtherActor, Damage, SweepResult))
+		{
 			Explode();
 		}
 	}

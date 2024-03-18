@@ -14,6 +14,8 @@
 #include "SAttributeComponent.h"
 #include "SWorldUserWidget.h"
 
+#include "Components/CapsuleComponent.h"
+
 // Sets default values
 ASAICharacter::ASAICharacter()
 {
@@ -32,6 +34,13 @@ ASAICharacter::ASAICharacter()
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 	TimeToHitParamName = "TimeToHit";
+
+
+	// MDJ: Temporary code for fixing directional Impulse on ragdoll
+	//		1) the capsule component was catching the overlap event, so we never hit our AICharacter mesh (and thus could not get bone and hit normal)
+	//		2) the character mesh did not have overlap event enabled so we wouldn't hit it
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
+	GetMesh()->SetGenerateOverlapEvents(true); 
 }
 
 // MDJ: Do binding of events in PostInitializeComponents() to prevent issues that were faced when doing this in the constructor

@@ -8,6 +8,10 @@
 #include "DrawDebugHelpers.h"
 
 
+// Lecture 15.3: Console Variables -- more detailed comment in SGameModeBase.cpp
+static TAutoConsoleVariable<bool>CVarDebugDrawInteraction(TEXT("su.InteractionDebugDraw"), false, TEXT("Enable Debug Lines for Interact Component."), ECVF_Cheat);
+
+
 
 // Sets default values for this component's properties
 USInteractionComponent::USInteractionComponent()
@@ -41,6 +45,9 @@ void USInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void USInteractionComponent::PrimaryInteract()
 {
+	// MDJ: Lecture 15.3 - grab the Console Variable for setting debug once
+	bool bDebugDraw = CVarDebugDrawInteraction.GetValueOnGameThread();
+
 
 	// MDJ: Look at what function expects, and then create all necesarry variables
 	// FHitResult Hit; =============== COMMENTED INITIAL SOLUTION USING LINE TRACE
@@ -87,13 +94,19 @@ void USInteractionComponent::PrimaryInteract()
 	{
 		InteractWithActor(Hit, MyOwner);
 
-		// MDJ: debugging draw sphere sweep:
-		DrawDebugSphere(GetWorld(), Hit.ImpactPoint, Radius, 32, LineColor, false, 2.0f);
-
+		if (bDebugDraw) 
+		{
+			// MDJ: debugging draw sphere sweep:
+			DrawDebugSphere(GetWorld(), Hit.ImpactPoint, Radius, 32, LineColor, false, 2.0f);
+		}
+		
 		break; // MDJ: break out of for loop after interaction with first actor, so that one key press does not interact with multiple objects
 	}
 
-	DrawDebugLine(GetWorld(), Start, End, LineColor, false, 2.0f, 0, 2.0f);
+	if (bDebugDraw)
+	{
+		DrawDebugLine(GetWorld(), Start, End, LineColor, false, 2.0f, 0, 2.0f);
+	}
 }
 
 // MDJ: InteractWithActor is something I added myself to not have to copy paste logic into for loop when going from line trace to sphere (sweep) trace

@@ -8,6 +8,16 @@
 #include "AI/SAICharacter.h"
 #include "SAttributeComponent.h"
 #include "EngineUtils.h" // MDJ: for TActorIterator
+#include <SCharacter.h>
+
+
+
+
+// MDJ: Lecture 15.3 Console Variables
+// <variable type>(Command name, default value, tooltip, mark - using ECVF_Cheat makes it that it won't be included in actual build
+// the su. in command name is for Stanford University, i.e., use whatever prefix makes sense for your project to separate your own ConsoleVariables
+static TAutoConsoleVariable<bool> CVarSpawnBots(TEXT("su.SpawnBots"), true, TEXT("Enable spawning of bots via timer."), ECVF_Cheat);
+
 
 
 ASGameModeBase::ASGameModeBase()
@@ -41,7 +51,13 @@ void ASGameModeBase::KillAll()
 }
 
 void ASGameModeBase::SpawnBotTimerElapsed()
-{
+{	// MDJ: Lecture 15.3, early return if Console Variable CVarSpawnBots is false
+	if (!CVarSpawnBots.GetValueOnGameThread())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Bot spawning disabled via cvar 'CVarSpawnBots'."));
+		return;
+	}
+
 	// MDJ: Limit the number of AI spawned in the level at once using 'TActorIterator' -- "is like a better version of 'GetAllActorsOfClass'
 	int32 NrOfAliveBots = 0;
 	for (TActorIterator<ASAICharacter> It(GetWorld()); It; ++It)
@@ -107,4 +123,39 @@ void ASGameModeBase::OnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryIn
 		// Track all used spawn locations
 		DrawDebugSphere(GetWorld(), Locations[0], 50.0f, 20, FColor::Blue, false, 60.0f);
 	}
+}
+
+void ASGameModeBase::RespawnPlayerElapsed(AController* Controller)
+{
+	if (ensure(Controller))
+	{
+		// MDJ: Remove PlayerCharacter from controller, so that when you call 'RestartPlayer' it does not simply teleport the existing PlayerCharacter
+		//		CTRL+click 'RestartPlayer' to see in source code what it does if (NewPlayer->GetPawn() != nullptr)
+		Controller->UnPossess();
+
+		// MDJ: RestartPlayer is standard available in GameMode 
+		RestartPlayer(Controller);
+	}
+}
+
+
+void ASGameModeBase::OnActorKilled(AActor* VictimActor, AActor* Killer)
+{
+	ASCharacter* Player = Cast<ASCharacter>(VictimActor);
+	if (Player)
+	{
+		// MDJ: TimerHandle purposely made local, so that if two players die in multiplayer they do not overwrite the same timer
+		//		This however also means that we cannot cancel it anywhere, since we do not have the handle saved
+		FTimerHandle TimerHandle_RespawnDelay;
+
+		// MDJ: Little more difficult Timer than before, because we want to pass arguments to the Timer (i.e., who died, and thus who to respawn)
+		//		Done using TimerDelegate
+		FTimerDelegate Delegate;
+		Delegate.BindUFunction(this, "RespawnPlayerElapsed", Player->GetController());
+		
+		float RespawnDelay = 2.0f; // @TODO: this should be exposed as variable
+		GetWorldTimerManager().SetTimer(TimerHandle_RespawnDelay, Delegate, RespawnDelay, false);
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("OnActorKilled: Victim: %s, Killer: %s"), *GetNameSafe(VictimActor), *GetNameSafe(Killer));
 }
