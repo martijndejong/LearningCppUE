@@ -28,6 +28,21 @@ public:
 	ASItemChest();
 
 protected:
+	// L19: add new state that we want to be replicated between server and all clients
+	// --> Only 'UPROPERTY(Replicated)' would replicate the value across server and clients, but 'ReplicatedUsing' calls a function too, 
+	// in this case, the animating of actually opening and closing the chest on client too 
+	UPROPERTY(ReplicatedUsing="OnRep_LidOpened") // "RepNotify" 
+	bool bLidOpened;
+
+	// Function that will be called by our RepNotify
+	UFUNCTION()
+	void OnRep_LidOpened();
+
+	// This below declaration seems to be redundant, as it works without, but this was included in the header in unreal documentation example
+	// Override Replicate Properties function
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+
 	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* BaseMesh;
 

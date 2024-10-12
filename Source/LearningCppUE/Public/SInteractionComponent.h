@@ -21,6 +21,13 @@ public:
 	USInteractionComponent();
 
 protected:
+	// Lecture 19.2 Networking the world interaction logic:
+	// Reliable - Will always arrive, eventually. Request will be re-sent unless an acknowledgement was received --> basically like TCP
+	// Unreliable - Not guaranteed, packet can get lost and won't retry --> basically like UDP
+	UFUNCTION(Server, Reliable)
+	// Add function 'ServerInteract' -> RPC function naming convention: 'Server<Name>'/'Cient<Name>'/'MultiCast<Name>'
+	void ServerInteract();
+	
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
