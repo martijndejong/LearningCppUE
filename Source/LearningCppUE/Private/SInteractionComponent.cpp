@@ -104,6 +104,7 @@ void USInteractionComponent::ServerInteract_Implementation()
 	FVector EyeLocation;
 	FRotator EyeRotation;
 	// MDJ: I did not like using GetActorEyesViewPoint, and wanted to use camera view point instead. Custom code for that is below
+	// MDJ: Alternatively, you can also override the GetActorEyesViewPoint function in our SCharacter.cpp to simply return the camera position (lecture 15.3 25:15)
 	if (APawn* MyPawn = Cast<APawn>(MyOwner)) {
 		AController* MyController = MyPawn->GetController();
 		MyController->GetPlayerViewPoint(EyeLocation, EyeRotation);

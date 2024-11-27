@@ -44,6 +44,30 @@ protected:
 	UFUNCTION()
 	void RespawnPlayerElapsed(AController* Controller);
 
+
+	// Assignment 5:
+	// Read/write access as we could change this as our difficulty increases via Blueprint
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AI")
+	int32 CreditsPerKill;
+
+	/* Distance required between power-up spawn locations */
+	UPROPERTY(EditDefaultsOnly, Category = "Powerups")
+	float RequiredPowerupDistance;
+
+	/* Amount of powerups to spawn during match start */
+	UPROPERTY(EditDefaultsOnly, Category = "Powerups")
+	int32 DesiredPowerupCount;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Powerups")
+	TObjectPtr<UEnvQuery> PowerupSpawnQuery;
+
+	/* All power-up classes used to spawn with EQS at match start */
+	UPROPERTY(EditDefaultsOnly, Category = "Powerups")
+	TArray<TSubclassOf<AActor>> PowerupClasses;
+
+	void OnPowerupSpawnQueryCompleted(TSharedPtr<FEnvQueryResult> Result);
+
+
 public: 
 	ASGameModeBase();
 

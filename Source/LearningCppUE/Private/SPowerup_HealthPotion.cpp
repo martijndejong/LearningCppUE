@@ -3,8 +3,14 @@
 
 #include "SPowerup_HealthPotion.h"
 #include "SAttributeComponent.h"
+#include "SPlayerState.h"
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(SPowerup_HealthPotion)
+
+
+ASPowerup_HealthPotion::ASPowerup_HealthPotion()
+{
+	CreditCost = 50;
+}
 
 
 void ASPowerup_HealthPotion::Interact_Implementation(APawn* InstigatorPawn)
@@ -14,13 +20,17 @@ void ASPowerup_HealthPotion::Interact_Implementation(APawn* InstigatorPawn)
 		return;
 	}
 
-	USAttributeComponent* AttributeComp = Cast<USAttributeComponent>(InstigatorPawn->GetComponentByClass(USAttributeComponent::StaticClass()));
+	USAttributeComponent* AttributeComp = USAttributeComponent::GetAttributes(InstigatorPawn);
+	// Check if not already at max health
 	if (ensure(AttributeComp) && !AttributeComp->IsFullHealth())
 	{
-		// MDJ: Call our own ApplyHealthChange function of the custom AttributeComponent
-		// MDJ: Should make the 50.0f a tweakable variable
-		AttributeComp->ApplyHealthChange(this, +50.0f);
-
-		HideAndCooldownPowerup();
+		if (ASPlayerState* PS = InstigatorPawn->GetPlayerState<ASPlayerState>())
+		{
+			if (PS->RemoveCredits(CreditCost) && AttributeComp->ApplyHealthChange(this, AttributeComp->GetHealthMax()))
+			{
+				// Only activate if healed successfully
+				HideAndCooldownPowerup();
+			}
+		}
 	}
 }

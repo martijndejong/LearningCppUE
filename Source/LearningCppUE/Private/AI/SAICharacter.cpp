@@ -14,7 +14,10 @@
 #include "SAttributeComponent.h"
 #include "SWorldUserWidget.h"
 
+// To set collision on capsule component
 #include "Components/CapsuleComponent.h"
+// To disable character movement
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
 ASAICharacter::ASAICharacter()
@@ -36,7 +39,7 @@ ASAICharacter::ASAICharacter()
 	TimeToHitParamName = "TimeToHit";
 
 
-	// MDJ: Temporary code for fixing directional Impulse on ragdoll
+	// MDJ: Temporary code for fixing directional Impulse on ragdoll - proper fix would be creating a custom collision channel
 	//		1) the capsule component was catching the overlap event, so we never hit our AICharacter mesh (and thus could not get bone and hit normal)
 	//		2) the character mesh did not have overlap event enabled so we wouldn't hit it
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
@@ -96,6 +99,7 @@ void ASAICharacter::OnHealthChangedFunc(AActor* InstigatorActor, USAttributeComp
 			SetTargetActor(InstigatorActor);
 		}
 
+		// Died
 		if (NewHealth <= 0.0f)
 		{
 			// Stop BT
@@ -109,6 +113,12 @@ void ASAICharacter::OnHealthChangedFunc(AActor* InstigatorActor, USAttributeComp
 			// MDJ: Need to use GetMesh() instead of accessing mesh directly because they have marked the Mesh in character class as private
 			GetMesh()->SetAllBodiesSimulatePhysics(true);
 			GetMesh()->SetCollisionProfileName("Ragdoll"); // MDJ: Change Collision profile because original one only does Query (no physics) so sinks through ground
+
+			// Stop collision so that the capsule component does not float around and block the character / camera
+			// TIP: In game editor type "/show collision" to see all collision bodies
+			GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			GetCharacterMovement()->DisableMovement(); // So that the movement component will not start falling the capsule through the floor
+
 
 			// Set lifespan (destroy actor)
 			SetLifeSpan(10.0f);

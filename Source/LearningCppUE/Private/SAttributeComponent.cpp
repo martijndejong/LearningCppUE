@@ -52,8 +52,8 @@ float USAttributeComponent::GetHealthMax() const
 bool USAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Delta) // MDJ: Make sure you do not call just 'Instigator' because that is already used in UE base class
 {
 	// MDJ: Lecture 14.4 -- checking 'CanBeDamaged' (standard in every actor) already implemented in 'CheatManager' under "God mode"
-	//		Early out if actor cannot be damaged
-	if (!GetOwner()->CanBeDamaged())
+	//		Early out if actor cannot be damaged (&& negative damage, such that healing would still be allowed)
+	if (!GetOwner()->CanBeDamaged() && Delta < 0.0f)
 	{
 		return false;
 	}

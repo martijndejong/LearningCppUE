@@ -4,27 +4,23 @@
 
 #include "CoreMinimal.h"
 #include "SPowerupActor.h"
-#include "SPowerup_HealthPotion.generated.h"
-
-
-class UStaticMeshComponent;
-
+#include "SPowerup_Credits.generated.h"
 
 /**
- *
+ * 
  */
 UCLASS()
-class LEARNINGCPPUE_API ASPowerup_HealthPotion : public ASPowerupActor
+class LEARNINGCPPUE_API ASPowerup_Credits : public ASPowerupActor
 {
 	GENERATED_BODY()
-
+	
 protected:
-	UPROPERTY(EditAnywhere, Category = "HealthPotion")
-	int32 CreditCost;
 
+	UPROPERTY(EditAnywhere, Category = "Credits")
+	int32 CreditsAmount;
 
 public:
 	virtual void Interact_Implementation(APawn* InstigatorPawn) override;
 
-	ASPowerup_HealthPotion();
+	ASPowerup_Credits();
 };

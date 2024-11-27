@@ -16,6 +16,9 @@
 // MDJ: This include is added for DEBUG ARROWS
 #include "DrawDebugHelpers.h"
 
+// Lecture 15.3: Console Variables -- more detailed comment in SGameModeBase.cpp
+static TAutoConsoleVariable<bool>CVarDebugDrawInteraction(TEXT("su.InteractionDebugDraw"), false, TEXT("Enable Debug Lines for Interact Component."), ECVF_Cheat);
+
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -75,24 +78,29 @@ void ASCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// ==================== DEBUG ARROWS =======================
-	// This is entirely optional, it draws two arrows to visualize rotations of the player
-	// -- Rotation Visualization -- //
-	const float DrawScale = 100.0f;
-	const float Thickness = 5.0f;
+	// MDJ: Lecture 15.3 - grab the Console Variable for setting debug once
+	bool bDebugDraw = CVarDebugDrawInteraction.GetValueOnGameThread();
+	if (bDebugDraw) 
+	{
+		// ==================== DEBUG ARROWS =======================
+		// This is entirely optional, it draws two arrows to visualize rotations of the player
+		// -- Rotation Visualization -- //
+		const float DrawScale = 100.0f;
+		const float Thickness = 5.0f;
 
-	FVector LineStart = GetActorLocation();
-	// Offset to the right of pawn
-	LineStart += GetActorRightVector() * 100.0f;
-	// Set line end in direction of the actor's forward
-	FVector ActorDirection_LineEnd = LineStart + (GetActorForwardVector() * 100.0f);
-	// Draw Actor's Direction
-	DrawDebugDirectionalArrow(GetWorld(), LineStart, ActorDirection_LineEnd, DrawScale, FColor::Yellow, false, 0.0f, 0, Thickness);
+		FVector LineStart = GetActorLocation();
+		// Offset to the right of pawn
+		LineStart += GetActorRightVector() * 100.0f;
+		// Set line end in direction of the actor's forward
+		FVector ActorDirection_LineEnd = LineStart + (GetActorForwardVector() * 100.0f);
+		// Draw Actor's Direction
+		DrawDebugDirectionalArrow(GetWorld(), LineStart, ActorDirection_LineEnd, DrawScale, FColor::Yellow, false, 0.0f, 0, Thickness);
 
-	FVector ControllerDirection_LineEnd = LineStart + (GetControlRotation().Vector() * 100.0f);
-	// Draw 'Controller' Rotation ('PlayerController' that 'possessed' this character)
-	DrawDebugDirectionalArrow(GetWorld(), LineStart, ControllerDirection_LineEnd, DrawScale, FColor::Green, false, 0.0f, 0, Thickness);
-	// ==================== DEBUG ARROWS =======================
+		FVector ControllerDirection_LineEnd = LineStart + (GetControlRotation().Vector() * 100.0f);
+		// Draw 'Controller' Rotation ('PlayerController' that 'possessed' this character)
+		DrawDebugDirectionalArrow(GetWorld(), LineStart, ControllerDirection_LineEnd, DrawScale, FColor::Green, false, 0.0f, 0, Thickness);
+		// ==================== DEBUG ARROWS =======================
+	};
 }
 
 // Called to bind functionality to input
@@ -259,8 +267,13 @@ void ASCharacter::SpawnProjectile(TSubclassOf<AActor> ClassToSpawn)
 		FRotator SpawnRotation = bBlockingHit ? (Hit.ImpactPoint - HandLocation).Rotation() : CameraRotation;
 		FTransform SpawnTM = FTransform(SpawnRotation, HandLocation);
 
-		FColor LineColor = bBlockingHit ? FColor::Green : FColor::Red; // This is an inline if else statement
-		DrawDebugLine(GetWorld(), Start, Hit.ImpactPoint, LineColor, false, 2.0f, 0, 2.0f);
+		// MDJ: Lecture 15.3 - grab the Console Variable for setting debug once
+		bool bDebugDraw = CVarDebugDrawInteraction.GetValueOnGameThread();
+		if (bDebugDraw)
+		{
+			FColor LineColor = bBlockingHit ? FColor::Green : FColor::Red; // This is an inline if else statement
+			DrawDebugLine(GetWorld(), Start, Hit.ImpactPoint, LineColor, false, 2.0f, 0, 2.0f);
+		};
 		// =================== ASSIGNMENT 2.1 // =================== 
 
 		// MDJ: THIRD INPUT

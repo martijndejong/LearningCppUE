@@ -8,7 +8,8 @@
 #include "AI/SAICharacter.h"
 #include "SAttributeComponent.h"
 #include "EngineUtils.h" // MDJ: for TActorIterator
-#include <SCharacter.h>
+#include "SCharacter.h"
+#include "SPlayerState.h"
 
 
 
@@ -23,6 +24,12 @@ static TAutoConsoleVariable<bool> CVarSpawnBots(TEXT("su.SpawnBots"), true, TEXT
 ASGameModeBase::ASGameModeBase()
 {
 	SpawnTimerInterval = 2.0f;
+	CreditsPerKill = 20;
+
+	DesiredPowerupCount = 10;
+	RequiredPowerupDistance = 2000;
+
+	PlayerStateClass = ASPlayerState::StaticClass();  // Standard property of GameModeBase.h (UE parent class) - can also be set in editor (standard Player State Class) 
 }
 
 void ASGameModeBase::StartPlay()
@@ -32,6 +39,79 @@ void ASGameModeBase::StartPlay()
 	// Continuous timer to spawn in more bots.
 	// Actual amount of bots and whether it's allowed to spawn determined by spawn logic later in the chain...
 	GetWorldTimerManager().SetTimer(TimerHandle_SpawnBots, this, &ASGameModeBase::SpawnBotTimerElapsed, SpawnTimerInterval, true);
+	
+
+	// Assignment 5
+	// Make sure we have assigned at least one power-up class
+	if (ensure(PowerupClasses.Num() > 0))
+	{
+		// Skip the Blueprint wrapper and use the direct C++ option which the Wrapper uses as well
+		FEnvQueryRequest Request(PowerupSpawnQuery, this);
+		Request.Execute(EEnvQueryRunMode::AllMatching, this, &ASGameModeBase::OnPowerupSpawnQueryCompleted);
+	}
+}
+
+void ASGameModeBase::OnPowerupSpawnQueryCompleted(TSharedPtr<FEnvQueryResult> Result)
+{
+	FEnvQueryResult* QueryResult = Result.Get();
+	if (!QueryResult->IsSuccessful())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Spawn bot EQS Query Failed!"));
+		return;
+	}
+
+	// Retrieve all possible locations that passed the query
+	TArray<FVector> Locations;
+	QueryResult->GetAllAsLocations(Locations);
+
+	// Keep used locations to easily check distance between points
+	TArray<FVector> UsedLocations;
+
+	int32 SpawnCounter = 0;
+	// Break out if we reached the desired count or if we have no more potential positions remaining
+	while (SpawnCounter < DesiredPowerupCount && Locations.Num() > 0)
+	{
+		// Pick a random location from remaining points.
+		int32 RandomLocationIndex = FMath::RandRange(0, Locations.Num() - 1);
+
+		FVector PickedLocation = Locations[RandomLocationIndex];
+		// Remove to avoid picking again
+		Locations.RemoveAt(RandomLocationIndex);
+
+		// Check minimum distance requirement
+		bool bValidLocation = true;
+		for (FVector OtherLocation : UsedLocations)
+		{
+			float DistanceTo = (PickedLocation - OtherLocation).Size();
+
+			if (DistanceTo < RequiredPowerupDistance)
+			{
+				// Show skipped locations due to distance
+				//DrawDebugSphere(GetWorld(), PickedLocation, 50.0f, 20, FColor::Red, false, 10.0f);
+
+				// too close, skip to next attempt
+				bValidLocation = false;
+				break;
+			}
+		}
+
+		// Failed the distance test
+		if (!bValidLocation)
+		{
+			continue;
+		}
+
+		// Pick a random powerup-class
+		int32 RandomClassIndex = FMath::RandRange(0, PowerupClasses.Num() - 1);
+		TSubclassOf<AActor> RandomPowerupClass = PowerupClasses[RandomClassIndex];
+
+		FVector spawnOffset = { 0, 0, 50 };
+		GetWorld()->SpawnActor<AActor>(RandomPowerupClass, PickedLocation + spawnOffset, FRotator::ZeroRotator);
+
+		// Keep for distance checks
+		UsedLocations.Add(PickedLocation);
+		SpawnCounter++;
+	}
 }
 
 // MDJ: Lecture 14.4 add KillAll console command (Exec function)
@@ -141,6 +221,11 @@ void ASGameModeBase::RespawnPlayerElapsed(AController* Controller)
 
 void ASGameModeBase::OnActorKilled(AActor* VictimActor, AActor* Killer)
 {
+	// Log Actor Killed to output log
+	UE_LOG(LogTemp, Log, TEXT("OnActorKilled: Victim: %s, Killer: %s"), *GetNameSafe(VictimActor), *GetNameSafe(Killer));
+
+
+	// Handle Player death
 	ASCharacter* Player = Cast<ASCharacter>(VictimActor);
 	if (Player)
 	{
@@ -157,5 +242,18 @@ void ASGameModeBase::OnActorKilled(AActor* VictimActor, AActor* Killer)
 		GetWorldTimerManager().SetTimer(TimerHandle_RespawnDelay, Delegate, RespawnDelay, false);
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("OnActorKilled: Victim: %s, Killer: %s"), *GetNameSafe(VictimActor), *GetNameSafe(Killer));
+
+	// Give Credits for kill
+	APawn* KillerPawn = Cast<APawn>(Killer);
+	// Don't credit kills of self
+	if (KillerPawn && KillerPawn != VictimActor)
+	{
+		// Only Players will have a 'PlayerState' instance, bots have nullptr
+		ASPlayerState* PS = KillerPawn->GetPlayerState<ASPlayerState>();
+		if (PS)
+		{
+			PS->AddCredits(CreditsPerKill);
+		}
+	}
+
 }
