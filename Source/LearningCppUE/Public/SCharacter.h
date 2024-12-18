@@ -11,6 +11,7 @@ class USpringArmComponent;
 class USInteractionComponent;
 class UAnimMontage;
 class USAttributeComponent;
+class USActionComponent;
 
 UCLASS()
 class LEARNINGCPPUE_API ASCharacter : public ACharacter
@@ -21,6 +22,9 @@ class LEARNINGCPPUE_API ASCharacter : public ACharacter
 public:
 	// Sets default values for this character's properties
 	ASCharacter();
+
+	// Override GetPawnViewLocation to make it return camera viewpoint instead of Pawn viewpoint
+	virtual FVector GetPawnViewLocation() const override;
 
 protected:
 
@@ -38,12 +42,17 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components") // BlueprintReadOnly to get access to it on the BluePrint graph
 	USAttributeComponent* AttributeComp;
 
-	// MDJ: VisibleAnywhere = read-only, still useful to view in-editor and enforce a convention
-	UPROPERTY(VisibleAnywhere, Category = "Effects")
-	FName HandSocketName;
+	// MDJ: Adding our own ActionComponent to the SCharacter class
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components") // BlueprintReadOnly to get access to it on the BluePrint graph
+	USActionComponent* ActionComp;
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	// Sprint actions (added in lecture 16.2)
+	void SprintStart();
+
+	void SprintStop();
 
 	// MDJ: Must declare void MoveForward function in .h before can be created in .cpp
 	void MoveForward(float Value);
@@ -56,17 +65,26 @@ protected:
 
 	// MDJ: Declare PrimaryInteract function to be called when interact button is pressed
 	void PrimaryInteract();
+	
+	/* LECTURE 16 - CONVERTING THE PROJECTILE ATTACKS TO "ACTIONS" - Standardizing and moving logic to Action_ProjectileAttack
+	COPIED TO SAction_ProjectileAttack.h
 
-	void SpawnProjectile(TSubclassOf<AActor> ClassToSpawn);
-
+	// MDJ: VisibleAnywhere = read-only, still useful to view in-editor and enforce a convention
+	UPROPERTY(VisibleAnywhere, Category = "Effects")
+	FName HandSocketName;
 
 	// MDJ: Setting a category is good practice to categorize in the editor (does not affect any way the code runs, solely for how it's shown in the editor)
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	UAnimMontage* AttackAnim;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	float AttackAnimDelay;
+
 	// MDJ: This makes it so that from the BP you can set a 'ProjectileClass' (of type <AActor>) which will be used by SpawnActor in ASCharacter::PrimaryAttack()
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	TSubclassOf<AActor> ProjectileClass;
+	*/
+
 	// MDJ: do the same for black hole and dash
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	TSubclassOf<AActor> BlackholeProjectileClass;
@@ -75,12 +93,16 @@ protected:
 	TSubclassOf<AActor> DashProjectileClass;
 
 
+	/* LECTURE 16 - CONVERTING THE PROJECTILE ATTACKS TO "ACTIONS" - Standardizing and moving logic to Action_ProjectileAttack
+	void SpawnProjectile(TSubclassOf<AActor> ClassToSpawn);
+	
 	// MDJ: Adding timer to time to animation with attack
 	FTimerHandle TimerHandle_PrimaryAttack;
 	void PrimaryAttack_TimeElapsed();
 
 	FTimerHandle TimerHandle_BlackholeAttack;
 	void BlackholeAttack_TimeElapsed();
+	*/
 
 
 	// MDJ: adding this in lecture 9 for stopping input on death

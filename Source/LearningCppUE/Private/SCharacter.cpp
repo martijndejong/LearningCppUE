@@ -9,6 +9,7 @@
 // MDJ: include our own component classes
 #include "SInteractionComponent.h"
 #include "SAttributeComponent.h"
+#include "SActionComponent.h"
 
 // MDJ: Include this to enable 'GetCharacterMovement' 
 # include "GameFramework/CharacterMovementComponent.h"
@@ -27,8 +28,8 @@ ASCharacter::ASCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	// MDJ: Create instance of SpringArmComponent and assign to pointer
-	// MDJ: Make SpringArmComp child of RootComponent (like attaching it to the root in editor)
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>("SpringArmComp");
+	// MDJ: Make SpringArmComp child of RootComponent (like attaching it to the root in editor)
 	SpringArmComp->SetupAttachment(RootComponent);
 	// MDJ: I had to add this code (not in Tom's lecture) to change the default values of SpringArmComp settings
 	// MDJ: NOTE! the settings selected in the Blueprint will override the C++ defaults
@@ -44,6 +45,9 @@ ASCharacter::ASCharacter()
 	// MDJ: Adding selfmade attribute component
 	AttributeComp = CreateDefaultSubobject<USAttributeComponent>("AttributeComp");
 
+	// MDJ: Adding selfmade attribute component
+	ActionComp = CreateDefaultSubobject<USActionComponent>("ActionComp");
+
 
 	// MDJ: Fixing movement / lookaround input
 	// MDJ: below set direct property of ASCharacter (inherited from Actor parent class) to enable looking around without yawing character
@@ -53,8 +57,45 @@ ASCharacter::ASCharacter()
 
 
 	// MDJ: Set this as UPROPERTY and default value (here) so that it is visible in editor and not hardcoded into functions
-	HandSocketName = "Muzzle_01";
 	TimeToHitParamName = "TimeToHit";
+	// HandSocketName = "Muzzle_01"; MOVED TO SAction_ProjectileAttack.cpp
+	// AttackAnimDelay = 0.2f; MOVED TO SAction_ProjectileAttack.cpp
+}
+
+/* Set up input */
+// Called to bind functionality to input
+void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	// MDJ: Add BindAxis to PlayerInputComponent -- (1 axis name, 2 which character (self), 3 function to execute)
+	// MDJ: name must be same as name added in Editor Input mappings
+	PlayerInputComponent->BindAxis("MoveForward", this, &ASCharacter::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &ASCharacter::MoveRight);
+
+	// MDJ: Same as above, but now for turn -- this time use &APawn because that already has function "AddControllerYawInput"
+	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
+	// MDJ: same same but for pitch
+	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
+
+
+	// MDJ: Bind action for spawning MagicProjectile
+	PlayerInputComponent->BindAction("PrimaryAttack", IE_Pressed, this, &ASCharacter::PrimaryAttack);
+
+	// MDJ: assignment 2: add SecondaryAttack (blackhole) and dash
+	PlayerInputComponent->BindAction("SecondaryAttack", IE_Pressed, this, &ASCharacter::BlackholeAttack);
+	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &ASCharacter::Dash);
+
+	// MDJ: Assignment 1: add character jump
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+
+	//MDJ: Bind action for interaction component
+	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this, &ASCharacter::PrimaryInteract);
+
+	// Setup input for sprint
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASCharacter::SprintStart);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASCharacter::SprintStop);
+
 }
 
 void ASCharacter::PostInitializeComponents()
@@ -70,6 +111,17 @@ void ASCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+/* Lecture 16.2 adding sprint via our own action system */
+void ASCharacter::SprintStart()
+{
+	ActionComp->StartActionByName(this, "Sprint");
+}
+
+void ASCharacter::SprintStop()
+{
+	ActionComp->StopActionByName(this, "Sprint");
 }
 
 
@@ -101,36 +153,6 @@ void ASCharacter::Tick(float DeltaTime)
 		DrawDebugDirectionalArrow(GetWorld(), LineStart, ControllerDirection_LineEnd, DrawScale, FColor::Green, false, 0.0f, 0, Thickness);
 		// ==================== DEBUG ARROWS =======================
 	};
-}
-
-// Called to bind functionality to input
-void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	// MDJ: Add BindAxis to PlayerInputComponent -- (1 axis name, 2 which character (self), 3 function to execute)
-	// MDJ: name must be same as name added in Editor Input mappings
-	PlayerInputComponent->BindAxis("MoveForward", this, &ASCharacter::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &ASCharacter::MoveRight);
-
-	// MDJ: Same as above, but now for turn -- this time use &APawn because that already has function "AddControllerYawInput"
-	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
-	// MDJ: same same but for pitch
-	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
-
-
-	// MDJ: Bind action for spawning MagicProjectile
-	PlayerInputComponent->BindAction("PrimaryAttack", IE_Pressed, this, &ASCharacter::PrimaryAttack);
-
-	// MDJ: assignment 2: add SecondaryAttack (blackhole) and dash
-	PlayerInputComponent->BindAction("SecondaryAttack", IE_Pressed, this, &ASCharacter::BlackholeAttack);
-	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &ASCharacter::Dash);
-
-	// MDJ: Assignment 1: add character jump
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
-
-	//MDJ: Bind action for interaction component
-	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this, &ASCharacter::PrimaryInteract);
 }
 
 void ASCharacter::HealSelf(float Amount /* = 100 */) // MDJ: the "= 100" here is just a comment to indicate we have set default value in the .h
@@ -177,40 +199,10 @@ void ASCharacter::MoveRight(float Value)
 	// AddMovementInput(GetActorRightVector(), Value);
 }
 
-// MDJ: This is the function that will be executed by BindAction that is referencing this function
-void ASCharacter::PrimaryAttack()
+// Override GetPawnViewLocation to make it return camera viewpoint instead of Pawn viewpoint -- making it easy for our Actions to get our camera view, without directly accessing camera component
+FVector ASCharacter::GetPawnViewLocation() const
 {
-	// MDJ: Add animation to PrimaryAttack
-	PlayAnimMontage(AttackAnim);
-
-	// MDJ: Delay the animation -- should be done using Animation Notifies, but for illustrative purposes a Timer is explained and used here
-	float AnimationDelay = 0.2f;
-	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::PrimaryAttack_TimeElapsed, AnimationDelay);
-	// GetWorldTimerManager().ClearTimer(TimerHandle_PrimaryAttack); <--- this would clear the timer, could be used e.g. when character dies so that it does not fire after death
-
-	// MDJ: Previously the code of PrimaryAttack_TimeElapsed was here, but it has been moved into that function so that it can executed by the timer
-}
-
-void ASCharacter::PrimaryAttack_TimeElapsed()
-{
-	SpawnProjectile(ProjectileClass);
-}
-
-void ASCharacter::BlackholeAttack()
-{
-	PlayAnimMontage(AttackAnim);
-	float AnimationDelay = 0.2f;
-	GetWorldTimerManager().SetTimer(TimerHandle_BlackholeAttack, this, &ASCharacter::BlackholeAttack_TimeElapsed, AnimationDelay);
-}
-
-void ASCharacter::BlackholeAttack_TimeElapsed()
-{
-	SpawnProjectile(BlackholeProjectileClass);
-}
-
-void ASCharacter::Dash()
-{
-	SpawnProjectile(DashProjectileClass);
+	return CameraComp->GetComponentLocation();
 }
 
 // MDJ: Note: we create a new function PrimaryInteract here for character class that is bound to action
@@ -220,7 +212,58 @@ void ASCharacter::PrimaryInteract()
 	InteractionComp->PrimaryInteract();
 }
 
+// MDJ: This is the function that will be executed by BindAction that is referencing this function
+void ASCharacter::PrimaryAttack()
+{
+	ActionComp->StartActionByName(this, "PrimaryAttack");
 
+
+	/* LECTURE 16 - CONVERTING THE PROJECTILE ATTACKS TO "ACTIONS" - Standardizing and moving logic to Action_ProjectileAttack
+	// MDJ: Add animation to PrimaryAttack
+	PlayAnimMontage(AttackAnim);
+
+	// MDJ: Delay the animation -- should be done using Animation Notifies, but for illustrative purposes a Timer is explained and used here
+	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::PrimaryAttack_TimeElapsed, AttackAnimDelay);
+	// GetWorldTimerManager().ClearTimer(TimerHandle_PrimaryAttack); <--- this would clear the timer, could be used e.g. when character dies so that it does not fire after death
+
+	// MDJ: Previously the code of PrimaryAttack_TimeElapsed was here, but it has been moved into that function so that it can executed by the timer
+	*/
+}
+
+void ASCharacter::BlackholeAttack()
+{
+	ActionComp->StartActionByName(this, "Blackhole");
+	/* LECTURE 16 - CONVERTING THE PROJECTILE ATTACKS TO "ACTIONS" - Standardizing and moving logic to Action_ProjectileAttack
+	PlayAnimMontage(AttackAnim);
+	float AnimationDelay = 0.2f;
+	GetWorldTimerManager().SetTimer(TimerHandle_BlackholeAttack, this, &ASCharacter::BlackholeAttack_TimeElapsed, AnimationDelay);
+	*/
+}
+
+/* LECTURE 16 - CONVERTING THE PROJECTILE ATTACKS TO "ACTIONS" - Standardizing and moving logic to Action_ProjectileAttack
+void ASCharacter::PrimaryAttack_TimeElapsed()
+{
+	SpawnProjectile(ProjectileClass);
+}
+
+void ASCharacter::BlackholeAttack_TimeElapsed()
+{
+	SpawnProjectile(BlackholeProjectileClass);
+}
+*/
+
+void ASCharacter::Dash()
+{
+	ActionComp->StartActionByName(this, "Dash");
+
+	/* LECTURE 16 - CONVERTING THE PROJECTILE ATTACKS TO "ACTIONS" - Standardizing and moving logic to Action_ProjectileAttack
+	SpawnProjectile(DashProjectileClass);
+	*/
+}
+
+
+
+/* LECTURE 16 - CONVERTING THE PROJECTILE ATTACKS TO "ACTIONS" - Standardizing and moving logic to Action_ProjectileAttack
 // MDJ: first the logic below was directly in PrimaryAttack, but it has been made re-usable below:
 void ASCharacter::SpawnProjectile(TSubclassOf<AActor> ClassToSpawn)
 {
@@ -288,6 +331,7 @@ void ASCharacter::SpawnProjectile(TSubclassOf<AActor> ClassToSpawn)
 		GetWorld()->SpawnActor<AActor>(ClassToSpawn, SpawnTM, SpawnParams);
 	}
 }
+*/
 
 
 // MDJ: Prevent player from moving around when dead
