@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "GameplayTagContainer.h"
+
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "SActionComponent.generated.h"
@@ -15,6 +17,10 @@ class LEARNINGCPPUE_API USActionComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tags")
+	FGameplayTagContainer ActiveGameplayTags;  // We need to do the full include for this because it's an FGameplayTagContainer struct, and not a pointer (which would be the same size regardless)
+
 	UFUNCTION(BlueprintCallable, Category = "Actions")
 	void AddAction(TSubclassOf<USAction> ActionClass);
 

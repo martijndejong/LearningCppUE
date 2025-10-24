@@ -2,10 +2,13 @@
 
 #pragma once
 
+#include "GameplayTagContainer.h"
+
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "SAction.generated.h"
 
+class USActionComponent;
 class UWorld;
 
 /**
@@ -16,6 +19,20 @@ UCLASS(Blueprintable)  /* Have to mark this as 'Blueprintable' to make it able t
 class LEARNINGCPPUE_API USAction : public UObject
 {
 	GENERATED_BODY()
+
+protected: 
+
+	/* Helper function to quickly retrieve the owning component(action component) wich will hold the Gameplay Tags */
+	UFUNCTION(BlueprintCallable, Category = "Action")
+	USActionComponent* GetOwningComponent();  
+
+	/* Tags added to owning actor when action activated, removed when action stops */
+	UPROPERTY(EditDefaultsOnly, Category = "Tags")
+	FGameplayTagContainer GrantsTags;
+
+	/* Action can only start if OwningActor has none of these Tags applied */
+	UPROPERTY(EditDefaultsOnly, Category = "Tags")
+	FGameplayTagContainer BlockedTags;
 
 public: 
 

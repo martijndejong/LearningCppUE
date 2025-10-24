@@ -9,7 +9,7 @@
 
 
 // Lecture 15.3: Console Variables -- more detailed comment in SGameModeBase.cpp
-static TAutoConsoleVariable<bool>CVarDebugDrawInteraction(TEXT("su.InteractionDebugDraw"), false, TEXT("Enable Debug Lines for Interact Component."), ECVF_Cheat);
+static TAutoConsoleVariable<bool> CVarDebugDrawInteraction(TEXT("su.InteractionDebugDraw"), false, TEXT("Enable Debug Lines for Interact Component."), ECVF_Cheat);
 
 
 
